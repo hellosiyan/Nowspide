@@ -3,6 +3,8 @@ bin_PROGRAMS = nowspide
 QUIET_GEN = $(Q:@=@echo '  GEN   '$@;)
 
 nowspide_SOURCES =      \
+	nsp-net.c				\
+	nsp-net.h				\
     main.c              
 
 nowspide_CFLAGS =       \
@@ -11,5 +13,5 @@ nowspide_CFLAGS =       \
     -DPACKAGE_DATA_DIR=\""$(datadir)"\" \
     -DPACKAGE_LOCALE_DIR=\""$(datadir)/locale"\"
 
-nowspide_LDADD = $(VNR_LIBS)
+nowspide_LDADD = $(NSP_LIBS)
 
