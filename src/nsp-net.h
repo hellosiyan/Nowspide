@@ -21,32 +21,20 @@
 #ifndef __NSP_NET_H_
 #define __NSP_NET_H_
 
-#include <gtk/gtk.h>
+#include <string.h>
 
-G_BEGIN_DECLS
+typedef struct _NspNetData NspNetData;
 
-typedef struct _NspNet NspNet;
-typedef struct _NspNetClass NspNetClass;
-
-#define NSP_TYPE_NET             (nsp_net_get_type ())
-#define NSP_NET(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), NSP_TYPE_NET, NspNet))
-#define NSP_NET_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass),  NSP_TYPE_NET, NspNetClass))
-#define NSP_IS_NET(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NSP_TYPE_NET))
-#define NSP_IS_NET_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass),  NSP_TYPE_NET))
-#define NSP_NET_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj),  NSP_TYPE_NET, NspNetClass))
-
-struct _NspNet {
-    gchar* location;
+struct _NspNetData
+{
+	char *content;
+	size_t size;
+	char *error;
 };
 
-struct _NspNetClass {
-    GObjectClass parent_class;
-};
+NspNetData * nsp_net_new();
 
-GType     nsp_net_get_type (void) G_GNUC_CONST;
-
-NspNet  *nsp_net_new      ();
-
-G_END_DECLS
+int 	nsp_net_load_url	(const char *url, NspNetData *netdata);
+void	nsp_net_free 		(NspNetData *netdata);
 
 #endif /* __NSP_NET_H_ */

@@ -18,48 +18,77 @@
  */
 
 #include "nsp-net.h"
-#include <gtk/gtk.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <curl/curl.h>
 
-G_DEFINE_TYPE (NspNet, nsp_net, G_TYPE_OBJECT);
+size_t nsp_net_curl_write_func (void *ptr, size_t size, size_t nmemb, void *data);
 
-/*************************************************************/
-/***** Private actions ***************************************/
-/*************************************************************/
-
-/*************************************************************/
-/***** Private signal handlers *******************************/
-/*************************************************************/
-
-/*************************************************************/
-/***** Stuff that deals with the type ************************/
-/*************************************************************/
-static void
-nsp_net_dispose (GObject *gobject)
-{
-    G_OBJECT_CLASS (nsp_net_parent_class)->dispose (gobject);
+NspNetData *
+nsp_net_new() {
+	NspNetData *netdata = malloc(sizeof(NspNetData));
+	
+	assert(netdata != NULL);
+	
+	netdata->content = netdata->error = NULL;
+	netdata->size = 0;
+	
+	return netdata;
 }
 
-static void
-nsp_net_class_init (NspNetClass *klass)
-{
-    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-
-    gobject_class->dispose = nsp_net_dispose;
+int
+nsp_net_load_url(const char *url, NspNetData *netdata) {
+	CURL *c;
+	CURLcode res;
+	
+	assert(netdata != NULL);
+	
+	free(netdata->content);
+	netdata->content = NULL;
+	netdata->size = 0;
+	
+	c = curl_easy_init();
+	curl_easy_setopt(c, CURLOPT_URL, url);
+	curl_easy_setopt(c, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt(c, CURLOPT_WRITEFUNCTION, nsp_net_curl_write_func);
+	curl_easy_setopt(c, CURLOPT_WRITEDATA, (void *) netdata);
+	
+	res = curl_easy_perform(c);
+	if ( res != 0)
+	{
+		netdata->error = (char *)curl_easy_strerror(res);
+		curl_easy_cleanup(c);
+		return 1;
+	}
+	
+	curl_easy_cleanup(c);
+	return 0;
 }
 
-NspNet *
-nsp_net_new ()
-{
-    return g_object_new (NSP_TYPE_NET, NULL);
+void
+nsp_net_free (NspNetData *netdata) {
+	if ( netdata == NULL)
+		return
+		
+	free (netdata->content);
+	netdata->size = 0;
+	free (netdata);
 }
 
-static void
-nsp_net_init (NspNet *net)
+size_t
+nsp_net_curl_write_func (void *ptr, size_t size, size_t nmemb, void *data)
 {
-    net->location = '\0';
+	size_t chunk_size = size*nmemb;
+	NspNetData *string = (NspNetData *) data;
+	
+	string->content = realloc(string->content, string->size + chunk_size + 1);
+	if ( string->content )
+	{
+		memcpy(&(string->content[string->size]), ptr, chunk_size);
+		string->size += chunk_size;
+		string->content[string->size] = 0;
+	}
+	
+	return chunk_size;
 }
-
-/*************************************************************/
-/***** Actions ***********************************************/
-/*************************************************************/
 

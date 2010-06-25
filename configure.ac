@@ -36,11 +36,15 @@ AC_PATH_PROG(GLIB_GENMARSHAL, glib-genmarshal)
 
 GTK_REQUIRED=2.20
 GLIB_REQUIRED=2.20
+CURL_REQUIRED=7.18
+LIBXML_REQUIRED=2.7
 
 
 NSP_MODULES="gtk+-2.0 >= $GTK_REQUIRED \
              glib-2.0 >= $GLIB_REQUIRED \
-             gio-2.0 >= $GLIB_REQUIRED"
+             gio-2.0 >= $GLIB_REQUIRED \
+             libcurl >= $CURL_REQUIRED\
+             libxml-2.0 >= $LIBXML_REQUIRED"
 
 
 # ****************
