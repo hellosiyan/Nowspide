@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <curl/curl.h>
 
-size_t nsp_net_curl_write_func (void *ptr, size_t size, size_t nmemb, void *data);
+static size_t nsp_net_curl_write_func (void *ptr, size_t size, size_t nmemb, void *data);
 
 NspNetData *
 nsp_net_new() {
@@ -75,7 +75,7 @@ nsp_net_free (NspNetData *netdata) {
 	free (netdata);
 }
 
-size_t
+static size_t
 nsp_net_curl_write_func (void *ptr, size_t size, size_t nmemb, void *data)
 {
 	size_t chunk_size = size*nmemb;

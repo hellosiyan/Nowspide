@@ -5,6 +5,8 @@ QUIET_GEN = $(Q:@=@echo '  GEN   '$@;)
 nowspide_SOURCES =      \
 	nsp-net.c				\
 	nsp-net.h				\
+	nsp-window.c				\
+	nsp-window.h				\
     main.c              
 
 nowspide_CFLAGS =       \

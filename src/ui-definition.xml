@@ -1,16 +1,7 @@
 <ui>
   <menubar name="MainMenu">
     <menu action="File">
-      <menuitem action="FileAdd"/>
-      <separator/>
-      <menuitem action="FileUpdateAll"/>
-      <separator/>
       <menuitem action="FileClose"/>
-    </menu>
-    <menu action="Edit">
-      <menuitem action="FileDelete"/>
-      <separator/>
-      <menuitem action="EditPreferences"/>
     </menu>
     <menu action="Help">
       <menuitem action="HelpAbout"/>
