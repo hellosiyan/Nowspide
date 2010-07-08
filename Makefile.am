@@ -1,4 +1,4 @@
-SUBDIRS = src
+SUBDIRS = src data
 
 distclean-local:
 	if test $(srdcir) = .; then :; else \

@@ -29,8 +29,6 @@ compile
 shave
 shave-libtool
 libtool
-*.desktop
-*.desktop.in
 .deps
 
 nowspide-*.tar.gz

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Nowpside
+Comment=Handy and modern desktop feed reader
+TryExec=nowspide
+Exec=nowpside %F
+Icon=gtk-info
+StartupNotify=true
+Terminal=false
+Type=Application
+Categories=GNOME;GTK;Network;News;

@@ -17,9 +17,12 @@
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
  
+#include "config.h"
 #include "nsp-window.h"
 #include <assert.h>
 #include <stdlib.h>
+ 
+#define NSP_UI_FILE PACKAGE_DATA_DIR"/nowspide/nowspide-ui.xml"
 
 static void nsp_window_cmd_about (GtkAction *action, GtkWindow *window);
 static const GtkActionEntry action_entries_window[] = {
@@ -80,7 +83,7 @@ nsp_window_init(NspWindow *win, GError **error)
     GtkUIManager *ui_mng = gtk_ui_manager_new();
     GtkActionGroup *actions_window;
     
-	gtk_ui_manager_add_ui_from_file(ui_mng, "ui-definition.xml", error);
+	gtk_ui_manager_add_ui_from_file(ui_mng, NSP_UI_FILE, error);
 	
 	if ( error != NULL && *error != NULL ) {
 		return 1;
@@ -162,7 +165,7 @@ nsp_window_cmd_about (GtkAction *action, GtkWindow *window)
 
     gtk_show_about_dialog (GTK_WINDOW (window),
                    "program-name", "Nowspide",
-                   "version", "0.1",
+                   "version", VERSION,
                    "copyright", "Copyright \xc2\xa9 2010 Siyan Panayotov <xsisqox@gmail.com>",
                    "comments","Handy and modern desktop feed reader",
                    "authors", authors,

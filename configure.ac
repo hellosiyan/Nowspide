@@ -59,6 +59,7 @@ SHAVE_INIT([], [enable])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
+                 data/Makefile
                  shave
                  shave-libtool])
 AC_OUTPUT

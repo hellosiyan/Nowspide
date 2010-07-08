@@ -1,0 +1,10 @@
+<ui>
+  <menubar name="MainMenu">
+    <menu action="File">
+      <menuitem action="FileClose"/>
+    </menu>
+    <menu action="Help">
+      <menuitem action="HelpAbout"/>
+    </menu>
+  </menubar>
+</ui>
