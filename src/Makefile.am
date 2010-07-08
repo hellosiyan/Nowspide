@@ -7,6 +7,8 @@ nowspide_SOURCES =      \
 	nsp-net.h				\
 	nsp-window.c				\
 	nsp-window.h				\
+	nsp-feed.c				\
+	nsp-feed.h				\
     main.c              
 
 nowspide_CFLAGS =       \
