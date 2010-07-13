@@ -29,6 +29,7 @@
 
 #include "nsp-net.h"
 #include "nsp-window.h"
+#include "nsp-feed-parser.h"
 
 void
 handle_url(gpointer data, gpointer user_data ) {
@@ -43,7 +44,11 @@ handle_url(gpointer data, gpointer user_data ) {
 	}
 	else
 	{
-		printf("%s\n", netdata->content);
+	
+		xmlDoc *xml_doc =  xmlReadMemory(netdata->content, netdata->size, NULL, NULL, 0);
+		
+		printf("%s\n-----------\n", netdata->content);
+		nsp_feed_parser_rss_2_0(xml_doc, NULL);
 	}
 	nsp_net_free(netdata);
 	netdata = NULL;
@@ -56,14 +61,14 @@ feed_list_example() {
 	printf("Hello, World!\nI'm Nowspide ...\n");
 	
 	char* sites[] = {
-		"http://blogs.myspace.com/Modules/BlogV2/Pages/RssFeed.aspx?friendID=204244038",		// RSS 2.0
 		"http://www.linux-bg.org/linux-bg-news.rdf",		// RSS 0.9.1
+		"http://git.gnome.orgg/cgit/eog/atom/?h=master",			// xmlns='http://www.w3.org/2005/Atom'
+		"http://noscope.com/feed",		// RSS 2.0
 		"http://distrowatch.com/news/dwd.xml",		// RSS 2.0
+		"http://blogs.myspace.com/Modules/BlogV2/Pages/RssFeed.aspx?friendID=204244038",		// RSS 2.0
 		"http://fridge.ubuntu.com/node/feed",		// RSS 2.0
 		"http://www.gnomefiles.org/files/gnomefiles.rdf",		// RSS 2.0
-		"http://git.gnome.orgg/cgit/eog/atom/?h=master",			// xmlns='http://www.w3.org/2005/Atom'
 		"http://openfest.org/feed/",		// RSS 2.0
-		"http://noscope.com/feed",		// RSS 2.0
 		"http://feeds.feedburner.com/d0od",		// RSS 2.0
 		"http://crunchbanglinux.org/forums/feed/rss/topic/2982/"		// RSS 2.0
 	};
@@ -72,14 +77,12 @@ feed_list_example() {
 	
 	fetch_pool = g_thread_pool_new ((GFunc)handle_url, NULL, get_nprocs()+1, FALSE, NULL );
 	
-	for (i = 0; i < 10; i += 1)
+	for (i = 0; i < 1; i += 1)
 	{
 		g_thread_pool_push(fetch_pool, (gpointer)sites[i], NULL);
 	}
 	
 	g_thread_pool_free(fetch_pool, FALSE, TRUE);
-	
-	getchar();
 }
 
 int 
@@ -87,7 +90,7 @@ main (int argc, char *argv[])
 {
 	GError *error;
 	gtk_init(&argc, &argv);
-	
+
 	NspWindow *win = nsp_window_new();
 	
 	if ( nsp_window_init(win, &error) ) {
@@ -96,7 +99,7 @@ main (int argc, char *argv[])
 	}
 	
 	gtk_widget_show_all(win->window);
-	
+	feed_list_example();
 	gtk_main();
 	
 	return 0;

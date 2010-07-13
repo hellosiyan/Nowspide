@@ -17,49 +17,20 @@
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <gtk/gtk.h>
+
 #include "nsp-feed.h"
-#include <assert.h>
-#include <stdlib.h>
 
-NspFeed * 
-nsp_feed_new()
-{
-	NspFeed * feed = malloc(sizeof(NspFeed));
-	assert(feed != NULL);
-	
-	feed->type = NSP_FEED_UNKNOWN;
-	feed->items = NULL;
-	return feed;
-}
+#ifndef __NSP_PARSERS_H__
+#define __NSP_PARSERS_H__
 
-NspFeed * 
-nsp_feed_new_from_xml(xmlDoc *xml, GError **error)
-{
-	NspFeed * feed = nsp_feed_new();
-	assert(feed != NULL);
-	
-	assert(error == NULL || *error == NULL);
-	
-	if ( nsp_feed_set_from_xml(feed, xml, error) ) {
-		nsp_feed_free(feed);
-		return NULL;
-	}
-	return feed;
-}
 
-void
-nsp_feed_free (NspFeed *feed)
-{
-	if ( feed == NULL)
-		return;
-	
-}
+int nsp_feed_parser_rss_2_0 (xmlDoc *xml, GError **error);
 
-int
-nsp_feed_set_from_xml	(NspFeed *feed, xmlDoc *xml, GError **error)
-{
-	
-	return 0;
-}
+
+#endif /* __NSP_PARSERS_H__ */
+
 
 

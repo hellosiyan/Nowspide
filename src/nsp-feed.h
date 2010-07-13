@@ -31,20 +31,27 @@ typedef enum {
 	NSP_FEED_RSS_2_0
 } NspFeedType;
 
+typedef struct _NspFeedItem NspFeedItem;
+
+struct _NspFeedItem
+{
+	char *title;
+	char *link;
+	char *description;
+};
+
 typedef struct _NspFeed NspFeed;
 
 struct _NspFeed
 {
 	NspFeedType type;
-	char *title;
-	char *link;
-	char *description;
+	GList * items;
 };
 
 NspFeed * nsp_feed_new();
 NspFeed * nsp_feed_new_from_xml(xmlDoc *xml, GError **error);
 
 void	nsp_feed_free 		(NspFeed *feed);
-int		nsp_feed_load_xml	(NspFeed *feed, xmlDoc *xml, GError **error);
+int		nsp_feed_set_from_xml	(NspFeed *feed, xmlDoc *xml, GError **error);
 
 #endif /* __NSP_FEED_H_ */
