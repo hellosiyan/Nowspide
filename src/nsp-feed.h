@@ -24,6 +24,7 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <gtk/gtk.h>
+#include <time.h>
 
 typedef enum {
 	NSP_FEED_UNKNOWN,
@@ -38,6 +39,7 @@ struct _NspFeedItem
 	char *title;
 	char *link;
 	char *description;
+	struct tm *pubdate;
 };
 
 typedef struct _NspFeed NspFeed;
@@ -47,6 +49,9 @@ struct _NspFeed
 	NspFeedType type;
 	GList * items;
 };
+
+NspFeedItem	* nsp_feed_item_new();
+void nsp_feed_item_free(NspFeedItem *item);
 
 NspFeed * nsp_feed_new();
 NspFeed * nsp_feed_new_from_xml(xmlDoc *xml, GError **error);

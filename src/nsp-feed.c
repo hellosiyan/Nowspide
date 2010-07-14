@@ -21,6 +21,31 @@
 #include <assert.h>
 #include <stdlib.h>
 
+NspFeedItem *
+nsp_feed_item_new()
+{
+	NspFeedItem * item = malloc(sizeof(NspFeedItem));
+	assert(item != NULL);
+	
+	item->title = item->link = item->description = NULL;
+	item->pubdate = NULL;
+	
+	return item;
+}
+
+void
+nsp_feed_item_free(NspFeedItem * item)
+{
+	if ( item == NULL) {
+		return;
+	}
+	
+	free(item->title);
+	free(item->link);
+	free(item->description);
+	free(item->pubdate);
+}
+
 NspFeed * 
 nsp_feed_new()
 {

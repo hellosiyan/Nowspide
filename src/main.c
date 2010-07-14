@@ -15,8 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
- */
- 
+ */ 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,18 +36,25 @@ handle_url(gpointer data, gpointer user_data ) {
 	
 	nsp_net_load_url((const char*) data, netdata);
 	
-	
 	if ( netdata->error != NULL)
 	{
 		printf("ERROR: %s\n", netdata->error);
 	}
 	else
 	{
-	
 		xmlDoc *xml_doc =  xmlReadMemory(netdata->content, netdata->size, NULL, NULL, 0);
 		
-		printf("%s\n-----------\n", netdata->content);
-		nsp_feed_parser_rss_2_0(xml_doc, NULL);
+		GList *list = nsp_feed_item_parser_rss(xml_doc, NULL);
+		
+		// Test the generated GList
+		while ( list != NULL ) {
+			NspFeedItem * feed_item = (NspFeedItem *)list->data;
+			if ( feed_item->pubdate != NULL) {
+				printf("Date: %i-%i-%i at %i:%i:%i\n", feed_item->pubdate->tm_mday, feed_item->pubdate->tm_mon, feed_item->pubdate->tm_year + 1900, feed_item->pubdate->tm_hour, feed_item->pubdate->tm_min, feed_item->pubdate->tm_sec);
+			}
+			printf("Name: %s\nLink: %s\nDescription: %s\n#########\n", feed_item->title, feed_item->link, feed_item->description);
+			list = list->next;
+		}
 	}
 	nsp_net_free(netdata);
 	netdata = NULL;
@@ -61,16 +67,16 @@ feed_list_example() {
 	printf("Hello, World!\nI'm Nowspide ...\n");
 	
 	char* sites[] = {
-		"http://www.linux-bg.org/linux-bg-news.rdf",		// RSS 0.9.1
-		"http://git.gnome.orgg/cgit/eog/atom/?h=master",			// xmlns='http://www.w3.org/2005/Atom'
 		"http://noscope.com/feed",		// RSS 2.0
-		"http://distrowatch.com/news/dwd.xml",		// RSS 2.0
-		"http://blogs.myspace.com/Modules/BlogV2/Pages/RssFeed.aspx?friendID=204244038",		// RSS 2.0
-		"http://fridge.ubuntu.com/node/feed",		// RSS 2.0
-		"http://www.gnomefiles.org/files/gnomefiles.rdf",		// RSS 2.0
-		"http://openfest.org/feed/",		// RSS 2.0
 		"http://feeds.feedburner.com/d0od",		// RSS 2.0
-		"http://crunchbanglinux.org/forums/feed/rss/topic/2982/"		// RSS 2.0
+		"http://blogs.myspace.com/Modules/BlogV2/Pages/RssFeed.aspx?friendID=204244038",		// RSS 2.0s
+		"http://www.gnomefiles.org/files/gnomefiles.rdf",		// RSS 1.0
+		"http://www.linux-bg.org/linux-bg-news.rdf",		// RSS 0.9.1
+		"http://www.feedzilla.com/rss/top-news/industry",		// RSS 2.0
+		"http://git.gnome.org/cgit/eog/atom/?h=master",			// xmlns='http://www.w3.org/2005/Atom'
+		"http://distrowatch.com/news/dwd.xml",		// RSS 2.0
+		"http://fridge.ubuntu.com/node/feed",		// RSS 2.0
+		"http://openfest.org/feed/",		// RSS 2.0
 	};
 	
 	g_thread_init(NULL);

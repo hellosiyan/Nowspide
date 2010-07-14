@@ -20,6 +20,7 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <gtk/gtk.h>
+#include <time.h>
 
 #include "nsp-feed.h"
 
@@ -27,7 +28,7 @@
 #define __NSP_PARSERS_H__
 
 
-int nsp_feed_parser_rss_2_0 (xmlDoc *xml, GError **error);
+GList * nsp_feed_item_parser_rss (xmlDoc *xml, GError **error);
 
 
 #endif /* __NSP_PARSERS_H__ */

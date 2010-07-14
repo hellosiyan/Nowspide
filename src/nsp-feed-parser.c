@@ -17,22 +17,27 @@
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define _GNU_SOURCE 1
+
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <gtk/gtk.h>
 #include <assert.h>
 #include <string.h>
+#include <time.h>
 
 #include "nsp-feed-parser.h"
 #include "nsp-feed.h"
 
 
-int 
-nsp_feed_parser_rss_2_0 (xmlDoc *xml, GError **error) {
+GList *
+nsp_feed_item_parser_rss (xmlDoc *xml, GError **error) {
 	xmlNode *root = NULL;
 	xmlNode *tpm = NULL;
 	xmlNode *item = NULL;
 	xmlNode *prop = NULL;
+	
+	GList *items = NULL;
 	
 	assert(xml != NULL);
 	root = xmlDocGetRootElement(xml);
@@ -46,22 +51,29 @@ nsp_feed_parser_rss_2_0 (xmlDoc *xml, GError **error) {
 					item = item->next;
 					continue;
 				}
-				NspFeedItem feed_item;
+				NspFeedItem *feed_item = nsp_feed_item_new();
 				
 				prop = item->children;
 				while ( prop != NULL ) {
 					if ( !xmlStrcasecmp(prop->name, (xmlChar *)"title") ) {
-						feed_item.title = (char*) xmlNodeGetContent(prop);
+						feed_item->title = (char*) xmlNodeGetContent(prop);
 					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"link") ) {
-						feed_item.link = (char*) xmlNodeGetContent(prop);
+						feed_item->link = (char*) xmlNodeGetContent(prop);
 					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"description") ) {
-						feed_item.description = (char*) xmlNodeGetContent(prop);
+						feed_item->description = (char*) xmlNodeGetContent(prop);
+					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"pubdate") ) {
+						if ( feed_item->pubdate == NULL ) {
+							feed_item->pubdate = malloc(sizeof(struct tm));
+							assert(feed_item->pubdate != NULL);
+							feed_item->pubdate->tm_zone = NULL;
+						}
+						char * inv = strptime((const char*) xmlNodeGetContent(prop), "%a, %d %b %Y %H:%M:%S %z", feed_item->pubdate);
+						//printf("inv at: %s\n", inv);
 					}
 					prop = prop->next;
 				}
 			
-				printf("Name: %s\nLink: %s\nDescription: %s\n#########\n", feed_item.title, feed_item.link, feed_item.description);
-				feed_item.title = feed_item.link = feed_item.description = NULL;
+				items = g_list_prepend(items, (gpointer)feed_item);
 				
 				item = item->next;
 			}
@@ -70,7 +82,7 @@ nsp_feed_parser_rss_2_0 (xmlDoc *xml, GError **error) {
 		tpm = tpm->next;
 	}
 	
-	return 0;
+	return items;
 }
 
 
