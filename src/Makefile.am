@@ -11,6 +11,8 @@ nowspide_SOURCES =      \
 	nsp-feed.h				\
 	nsp-feed-parser.c		\
 	nsp-feed-parser.h		\
+	nsp-db.c				\
+	nsp-db.h				\
     main.c              
 
 nowspide_CFLAGS =       \
