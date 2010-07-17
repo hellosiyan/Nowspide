@@ -54,6 +54,7 @@ nsp_feed_new()
 	
 	feed->type = NSP_FEED_UNKNOWN;
 	feed->items = NULL;
+	feed->title = feed->url = NULL;
 	return feed;
 }
 
@@ -78,6 +79,8 @@ nsp_feed_free (NspFeed *feed)
 	if ( feed == NULL)
 		return;
 	
+	free(feed->title);
+	free(feed->url);
 }
 
 int

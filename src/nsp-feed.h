@@ -47,6 +47,8 @@ typedef struct _NspFeed NspFeed;
 struct _NspFeed
 {
 	NspFeedType type;
+	char *title;
+	char *url;
 	GList * items;
 };
 

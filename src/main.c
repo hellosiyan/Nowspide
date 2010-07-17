@@ -97,12 +97,24 @@ main (int argc, char *argv[])
 {
 	NspDb *db;
 	GError *error;
+	GList *feeds = NULL;
 	
 	gtk_init(&argc, &argv);
 	
 	db = nsp_db_get();
+	
+	feeds = nsp_db_load_feeds(db);
+	
+	while ( feeds != NULL ) {
+		NspFeed *f = (NspFeed*) feeds->data;
+		printf("F: %s\t", f->title);
+		printf("U: %s\n", f->url);
+		feeds = feeds->next;
+	}
+	
 	nsp_db_close(db);
-
+	
+	return 0;
 	NspWindow *win = nsp_window_new();
 	
 	if ( nsp_window_init(win, &error) ) {

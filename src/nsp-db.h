@@ -32,5 +32,10 @@ struct _NspDb {
 NspDb * nsp_db_get();
 void	nsp_db_close();
 
+void	nsp_db_transaction_begin(NspDb *nsp_db);
+void	nsp_db_transaction_end(NspDb *nsp_db);
+
+GList * nsp_db_load_feeds(NspDb *db);
+
 
 #endif /* __NSP_DB_H__ */

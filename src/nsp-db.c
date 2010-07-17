@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include "config.h"
 #include "nsp-db.h"
+#include "nsp-feed.h"
 
 static NspDb *db = NULL;
 
@@ -70,7 +71,22 @@ nsp_db_create()
 	
 	if ( error != NULL) {
 		g_warning("Error: %s", error);
+		sqlite3_free(error);
 	}
+	
+	return 0;
+}
+
+static int 
+nsp_db_feed_callback(void *user_data, int argc, char **argv, char ** azColName)
+{
+	GList **feeds = (GList**) user_data;
+	NspFeed *f = nsp_feed_new();
+	
+	f->title = g_strdup(argv[0]);
+	f->url = g_strdup(argv[1]);
+	
+	*feeds = g_list_prepend(*feeds, (gpointer) f);
 	
 	return 0;
 }
@@ -107,6 +123,43 @@ nsp_db_close(NspDb *nsp_db)
 	
 	sqlite3_close(nsp_db->db);
 	free(nsp_db);
+}
+
+
+void
+nsp_db_transaction_begin(NspDb *nsp_db)
+{
+	char *error = NULL;
+	sqlite3_exec(nsp_db->db, "BEGIN;", NULL, NULL, &error);
+	if ( error != NULL) {
+		g_warning("Error: %s\n", error);
+		sqlite3_free(error);
+	}
+}
+void
+nsp_db_transaction_end(NspDb *nsp_db)
+{
+	char *error = NULL;
+	sqlite3_exec(nsp_db->db, "COMMIT;", NULL, NULL, &error);
+	if ( error != NULL) {
+		g_warning("Error: %s\n", error);
+		sqlite3_free(error);
+	}
+}
+
+GList * 
+nsp_db_load_feeds(NspDb *db)
+{
+	char *error = NULL;
+	GList *feed_list = NULL;
+	
+	sqlite3_exec(db->db, "SELECT title, url FROM nsp_feed", nsp_db_feed_callback, &feed_list, &error);
+	if ( error != NULL ) {
+		g_warning("ERROR: %s\n", error);
+		sqlite3_free(error);
+	}
+	
+	return feed_list;
 }
 
 

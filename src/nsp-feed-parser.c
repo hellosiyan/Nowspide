@@ -67,8 +67,7 @@ nsp_feed_item_parser_rss (xmlDoc *xml, GError **error) {
 							assert(feed_item->pubdate != NULL);
 							feed_item->pubdate->tm_zone = NULL;
 						}
-						char * inv = strptime((const char*) xmlNodeGetContent(prop), "%a, %d %b %Y %H:%M:%S %z", feed_item->pubdate);
-						//printf("inv at: %s\n", inv);
+						strptime((const char*) xmlNodeGetContent(prop), "%a, %d %b %Y %H:%M:%S %z", feed_item->pubdate);
 					}
 					prop = prop->next;
 				}
