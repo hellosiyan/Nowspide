@@ -19,10 +19,18 @@
  
 #include "config.h"
 #include "nsp-window.h"
+#include "nsp-feed-list-view.h"
 #include <assert.h>
 #include <stdlib.h>
  
 #define NSP_UI_FILE PACKAGE_DATA_DIR"/nowspide/nowspide-ui.xml"
+
+enum
+{
+	COL_NAME=0,
+	COL_ITEM,
+	NUM_COLS
+};
 
 static void nsp_window_cmd_about (GtkAction *action, GtkWindow *window);
 static const GtkActionEntry action_entries_window[] = {
@@ -43,6 +51,8 @@ nsp_window_new()
 	assert(win != NULL);
 	
 	win->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	win->feed_list = nsp_feed_list_view_new();
+	
 	
 	return win;
 }
@@ -77,6 +87,8 @@ nsp_window_init(NspWindow *win, GError **error)
 	
 	GtkWidget *c2_holder;
 	GtkWidget *f_title;
+	
+	GtkWidget *scroll_win;
 	
 	assert(error == NULL || *error == NULL );
 	
@@ -127,6 +139,15 @@ nsp_window_init(NspWindow *win, GError **error)
 	gtk_box_pack_start(GTK_BOX(c1_holder), fl_title, FALSE, FALSE, 0);
 	gtk_label_set_justify(GTK_LABEL(fl_title), GTK_JUSTIFY_LEFT);
 	gtk_misc_set_alignment(GTK_MISC(fl_title), 0, 52);
+	
+	scroll_win = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll_win), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scroll_win), GTK_SHADOW_IN);
+	
+	gtk_widget_set_size_request(scroll_win, 200, -1);
+	gtk_container_add (GTK_CONTAINER (scroll_win), win->feed_list->list_view);
+	
+	gtk_box_pack_start(GTK_BOX(c1_holder), scroll_win, TRUE, TRUE, 0);
 	
 	
 	/* RIGHT COLUMN */

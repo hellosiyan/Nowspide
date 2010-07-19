@@ -17,24 +17,21 @@
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef __NSP_WINDOW_H_
-#define __NSP_WINDOW_H_
+#ifndef __NSP_FEED_LIST_VIEW_H__
+#define __NSP_FEED_LIST_VIEW_H__
 
 #include <gtk/gtk.h>
-#include "nsp-feed-list-view.h"
+#include "nsp-feed.h"
 
-typedef struct _NspWindow NspWindow;
+typedef struct _NspFeedListView NspFeedListView;
 
-struct _NspWindow
-{
-	GtkWidget *window;
-	NspFeedListView *feed_list;
+struct _NspFeedListView {
+	GtkTreeModel *list_model;
+	GtkWidget *list_view;
 };
 
-NspWindow * nsp_window_new();
+NspFeedListView * nsp_feed_list_view_new();
 
-void	nsp_window_free 		(NspWindow *window);
-int 	nsp_window_init (NspWindow *window, GError **error);
+void nsp_feed_list_view_add(NspFeedListView *view, NspFeed *feed);
 
-#endif /* __NSP_WINDOW_H_ */
+#endif /* __NSP_FEED_LIST_VIEW_H__ */

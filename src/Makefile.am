@@ -9,6 +9,8 @@ nowspide_SOURCES =      \
 	nsp-window.h			\
 	nsp-feed.c				\
 	nsp-feed.h				\
+	nsp-feed-list-view.c	\
+	nsp-feed-list-view.h	\
 	nsp-feed-parser.c		\
 	nsp-feed-parser.h		\
 	nsp-db.c				\
