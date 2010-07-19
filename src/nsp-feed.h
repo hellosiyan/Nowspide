@@ -28,8 +28,11 @@
 
 typedef enum {
 	NSP_FEED_UNKNOWN,
-	NSP_FEED_RSS_0_9_1,
-	NSP_FEED_RSS_2_0
+	NSP_FEED_RSS_0_9,
+	NSP_FEED_RSS_1_0,
+	NSP_FEED_RSS_2_0,
+	NSP_FEED_ATOM_0_3,
+	NSP_FEED_ATOM_1_0
 } NspFeedType;
 
 typedef struct _NspFeedItem NspFeedItem;
@@ -49,6 +52,7 @@ struct _NspFeed
 	NspFeedType type;
 	char *title;
 	char *url;
+	char *description;
 	GList * items;
 };
 
@@ -56,7 +60,7 @@ NspFeedItem	* nsp_feed_item_new();
 void nsp_feed_item_free(NspFeedItem *item);
 
 NspFeed * nsp_feed_new();
-NspFeed * nsp_feed_new_from_xml(xmlDoc *xml, GError **error);
+NspFeed * nsp_feed_new_from_url(const char *xml, GError **error);
 
 void	nsp_feed_free 		(NspFeed *feed);
 int		nsp_feed_set_from_xml	(NspFeed *feed, xmlDoc *xml, GError **error);

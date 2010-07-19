@@ -100,6 +100,7 @@ main (int argc, char *argv[])
 	GList *feeds = NULL;
 	
 	gtk_init(&argc, &argv);
+	
 	NspWindow *win = nsp_window_new();
 	
 	if ( nsp_window_init(win, &error) ) {

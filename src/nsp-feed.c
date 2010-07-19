@@ -18,6 +18,8 @@
  */
 
 #include "nsp-feed.h"
+#include "nsp-feed-parser.h"
+#include "nsp-net.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -54,22 +56,37 @@ nsp_feed_new()
 	
 	feed->type = NSP_FEED_UNKNOWN;
 	feed->items = NULL;
-	feed->title = feed->url = NULL;
+	feed->title = feed->url = feed->description = NULL;
 	return feed;
 }
 
 NspFeed * 
-nsp_feed_new_from_xml(xmlDoc *xml, GError **error)
+nsp_feed_new_from_url(const char *url, GError **error)
 {
-	NspFeed * feed = nsp_feed_new();
-	assert(feed != NULL);
+	NspNetData *data;
+	xmlDoc *xml_doc;
 	
 	assert(error == NULL || *error == NULL);
 	
-	if ( nsp_feed_set_from_xml(feed, xml, error) ) {
+	NspFeed * feed = nsp_feed_new();
+	data = nsp_net_new();
+	
+	if ( nsp_net_load_url(url, data) ) {
+		g_warning("ERROR: %s\n", data->error);
 		nsp_feed_free(feed);
 		return NULL;
 	}
+	
+	xml_doc =  xmlReadMemory(data->content, data->size, NULL, NULL, 0);
+	if ( xml_doc == NULL ) {
+		g_warning("Error parsing xml!\n");
+		nsp_feed_free(feed);
+		return NULL;
+	}
+	
+	feed->url = (char *) url;
+	nsp_feed_parse(xml_doc, feed);
+	
 	return feed;
 }
 
@@ -81,13 +98,8 @@ nsp_feed_free (NspFeed *feed)
 	
 	free(feed->title);
 	free(feed->url);
+	free(feed->description);
 }
 
-int
-nsp_feed_set_from_xml	(NspFeed *feed, xmlDoc *xml, GError **error)
-{
-	
-	return 0;
-}
 
 
