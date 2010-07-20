@@ -65,6 +65,7 @@ nsp_feed_new_from_url(const char *url, GError **error)
 {
 	NspNetData *data;
 	xmlDoc *xml_doc;
+	xmlNode *root;
 	
 	assert(error == NULL || *error == NULL);
 	
@@ -78,7 +79,7 @@ nsp_feed_new_from_url(const char *url, GError **error)
 	}
 	
 	xml_doc =  xmlReadMemory(data->content, data->size, NULL, NULL, 0);
-	if ( xml_doc == NULL ) {
+	if ( xml_doc == NULL || !(root = xmlDocGetRootElement(xml_doc)) ) {
 		g_warning("Error parsing xml!\n");
 		nsp_feed_free(feed);
 		return NULL;
@@ -86,6 +87,7 @@ nsp_feed_new_from_url(const char *url, GError **error)
 	
 	feed->url = (char *) url;
 	nsp_feed_parse(xml_doc, feed);
+	feed->items = nsp_feed_item_parser_rss(root, NULL);
 	
 	return feed;
 }

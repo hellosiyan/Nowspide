@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <gtk/gtk.h>
 #include <curl/curl.h>
 #include <sys/sysinfo.h>
@@ -44,8 +45,8 @@ handle_url(gpointer data, gpointer user_data ) {
 	else
 	{
 		xmlDoc *xml_doc =  xmlReadMemory(netdata->content, netdata->size, NULL, NULL, 0);
-		
-		GList *list = nsp_feed_item_parser_rss(xml_doc, NULL);
+		assert(xml_doc != NULL);
+		GList *list = nsp_feed_item_parser_rss(xmlDocGetRootElement(xml_doc), NULL);
 		
 		// Test the generated GList
 		while ( list != NULL ) {
@@ -98,7 +99,6 @@ main (int argc, char *argv[])
 	NspDb *db;
 	GError *error = NULL;
 	GList *feeds = NULL;
-	
 	gtk_init(&argc, &argv);
 	
 	NspWindow *win = nsp_window_new();
@@ -111,7 +111,7 @@ main (int argc, char *argv[])
 	db = nsp_db_get();
 	
 	feeds = nsp_db_load_feeds(db);
-	
+
 	while ( feeds != NULL ) {
 		nsp_feed_list_view_add(win->feed_list, (NspFeed*) feeds->data);
 		feeds = feeds->next;

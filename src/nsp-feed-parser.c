@@ -117,16 +117,14 @@ nsp_feed_parse_rss(xmlNode *node, NspFeed *feed)
 
 
 GList *
-nsp_feed_item_parser_rss (xmlDoc *xml, GError **error) {
-	xmlNode *root = NULL;
+nsp_feed_item_parser_rss (xmlNode *root, GError **error) {
 	xmlNode *tpm = NULL;
 	xmlNode *item = NULL;
 	xmlNode *prop = NULL;
 	
 	GList *items = NULL;
 	
-	assert(xml != NULL);
-	root = xmlDocGetRootElement(xml);
+	assert(root != NULL);
 	
 	tpm = root->children;
 	while( tpm != NULL ) {
