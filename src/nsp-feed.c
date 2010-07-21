@@ -63,13 +63,11 @@ nsp_feed_new()
 }
 
 NspFeed * 
-nsp_feed_new_from_url(const char *url, GError **error)
+nsp_feed_new_from_url(const char *url)
 {
 	NspNetData *data;
 	xmlDoc *xml_doc;
 	xmlNode *root;
-	
-	assert(error == NULL || *error == NULL);
 	
 	NspFeed * feed = nsp_feed_new();
 	data = nsp_net_new();

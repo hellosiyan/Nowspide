@@ -63,9 +63,8 @@ NspFeedItem	* nsp_feed_item_new();
 void nsp_feed_item_free(NspFeedItem *item);
 
 NspFeed * nsp_feed_new();
-NspFeed * nsp_feed_new_from_url(const char *xml, GError **error);
+NspFeed * nsp_feed_new_from_url(const char *xml);
 
 void	nsp_feed_free 		(NspFeed *feed);
-int		nsp_feed_set_from_xml	(NspFeed *feed, xmlDoc *xml, GError **error);
 
 #endif /* __NSP_FEED_H_ */

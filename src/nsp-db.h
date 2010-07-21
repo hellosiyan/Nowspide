@@ -27,6 +27,7 @@ typedef struct _NspDb NspDb;
 
 struct _NspDb {
 	sqlite3 *db;
+	int transaction_started;
 };
 
 
@@ -39,7 +40,8 @@ void	nsp_db_transaction_end(NspDb *nsp_db);
 GList * nsp_db_load_feeds(NspDb *db);
 GList * nsp_db_load_feeds_with_items(NspDb *db);
 
-int nsp_db_add_feed(NspDb *db, NspFeed *feed, int include_items);
+int nsp_db_add_feed(NspDb *db, NspFeed *feed);
+int nsp_db_add_feed_with_items(NspDb *db, NspFeed *feed);
 
 
 #endif /* __NSP_DB_H__ */
