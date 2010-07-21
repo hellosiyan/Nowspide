@@ -50,6 +50,7 @@ typedef struct _NspFeed NspFeed;
 struct _NspFeed
 {
 	NspFeedType type;
+	int id;
 	char *title;
 	char *url;
 	char *description;

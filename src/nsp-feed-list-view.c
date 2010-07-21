@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <gtk/gtk.h>
 
 enum
 {
@@ -44,7 +45,7 @@ nsp_feed_list_view_renderer_pixbuf()
 {	
 	GtkCellRenderer *renderer = gtk_cell_renderer_pixbuf_new();
 	
-	g_object_set(renderer, "stock-size", GTK_ICON_SIZE_MENU, NULL);
+	g_object_set(renderer, "stock-size", GTK_ICON_SIZE_BUTTON, NULL);
 	
 	return renderer;
 }
@@ -82,13 +83,18 @@ void
 nsp_feed_list_view_add(NspFeedListView *view, NspFeed *feed)
 {
 	GtkTreeIter iter;
+	char *col_name = NULL;
+	
+	col_name = g_strdup_printf("%s\n<span color='#666666'><small>%s</small></span>", feed->title, feed->description);
+	
+	
 	gtk_list_store_append (GTK_LIST_STORE(view->list_model), &iter);
 	gtk_list_store_set (GTK_LIST_STORE(view->list_model), &iter,
 					VIEW_COL_FAVICO, GTK_STOCK_INFO,
-					VIEW_COL_NAME, feed->title,
+					VIEW_COL_NAME, col_name,
 					-1);
 	
-	gtk_tree_view_columns_autosize(GTK_TREE_VIEW(view->list_view));
+	g_free(col_name);
 }
 
 

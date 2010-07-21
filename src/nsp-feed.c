@@ -57,6 +57,7 @@ nsp_feed_new()
 	feed->type = NSP_FEED_UNKNOWN;
 	feed->items = NULL;
 	feed->title = feed->url = feed->description = NULL;
+	feed->id = 0;
 	return feed;
 }
 

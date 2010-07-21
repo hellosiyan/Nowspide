@@ -83,8 +83,10 @@ nsp_db_load_feeds_callback(void *user_data, int argc, char **argv, char ** azCol
 	GList **feeds = (GList**) user_data;
 	NspFeed *f = nsp_feed_new();
 	
-	f->title = g_strdup(argv[0]);
-	f->url = g_strdup(argv[1]);
+	f->id = atoi(argv[0]);
+	f->title = g_strdup(argv[1]);
+	f->url = g_strdup(argv[2]);
+	f->description = g_strdup(argv[3]);
 	
 	*feeds = g_list_prepend(*feeds, (gpointer) f);
 	
@@ -152,11 +154,18 @@ nsp_db_load_feeds(NspDb *db)
 {
 	char *error = NULL;
 	GList *feed_list = NULL;
+	int stat;
 	
-	sqlite3_exec(db->db, "SELECT title, url FROM nsp_feed", nsp_db_load_feeds_callback, &feed_list, &error);
-	if ( error != NULL ) {
-		g_warning("ERROR: %s\n", error);
-		sqlite3_free(error);
+	stat = sqlite3_exec(db->db, "SELECT id, title, url, description FROM nsp_feed", nsp_db_load_feeds_callback, &feed_list, &error);
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+		
+		return NULL;
 	}
 	
 	return feed_list;
