@@ -29,6 +29,7 @@ nsp_feed_item_new()
 	NspFeedItem * item = malloc(sizeof(NspFeedItem));
 	assert(item != NULL);
 	
+	item->id = item->feed_id = 0;
 	item->title = item->link = item->description = NULL;
 	item->pubdate = NULL;
 	

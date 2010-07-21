@@ -110,10 +110,13 @@ main (int argc, char *argv[])
 	
 	db = nsp_db_get();
 	
-	feeds = nsp_db_load_feeds(db);
-
+	feeds = nsp_db_load_feeds_with_items(db);
+	
+	NspFeed *feed = NULL;
 	while ( feeds != NULL ) {
-		nsp_feed_list_view_add(win->feed_list, (NspFeed*) feeds->data);
+		feed = (NspFeed*) feeds->data;
+		nsp_feed_list_view_add(win->feed_list, feed);
+		
 		feeds = feeds->next;
 	}
 	

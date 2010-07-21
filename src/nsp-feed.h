@@ -39,6 +39,8 @@ typedef struct _NspFeedItem NspFeedItem;
 
 struct _NspFeedItem
 {
+	int id;
+	int feed_id;
 	char *title;
 	char *link;
 	char *description;

@@ -93,6 +93,22 @@ nsp_db_load_feeds_callback(void *user_data, int argc, char **argv, char ** azCol
 	return 0;
 }
 
+static int 
+nsp_db_load_feed_items_callback(void *user_data, int argc, char **argv, char ** azColName)
+{
+	GList **feed_items = (GList**) user_data;
+	NspFeedItem *feed_item = nsp_feed_item_new();
+	
+	feed_item->id = atoi(argv[0]);
+	feed_item->feed_id = atoi(argv[1]);
+	feed_item->title = g_strdup(argv[2]);
+	feed_item->link = g_strdup(argv[3]);
+	
+	*feed_items = g_list_prepend(*feed_items, (gpointer) feed_item);
+	
+	return 0;
+}
+
 NspDb *
 nsp_db_get()
 {
@@ -171,12 +187,55 @@ nsp_db_load_feeds(NspDb *db)
 	return feed_list;
 }
 
+GList *
+nsp_db_load_feed_items(NspDb *db, int feed_id)
+{
+	GList *feed_items = NULL;
+	char *error = NULL;
+	int stat;
+	
+	char *query = sqlite3_mprintf("SELECT id, feed_id, title, url, description FROM nsp_feed_item WHERE feed_id=%i", feed_id);
+	
+	stat = sqlite3_exec(db->db, query, nsp_db_load_feed_items_callback, &feed_items, &error);
+	sqlite3_free(query);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+		
+		return NULL;
+	}
+	
+	return feed_items;
+}
+
+GList *
+nsp_db_load_feeds_with_items(NspDb *db)
+{
+	GList *feeds = nsp_db_load_feeds(db);
+	GList *tmp = feeds;
+	NspFeed *feed = NULL;
+	
+	while ( tmp != NULL ) {
+		feed = (NspFeed *) tmp->data;
+		feed->items = nsp_db_load_feed_items(db, feed->id);
+		tmp = tmp->next;
+	}
+	
+	return feeds;
+}
+
 int 
 nsp_db_add_feed(NspDb *db, NspFeed *feed, int include_items)
 {
 	char *query = sqlite3_mprintf("INSERT INTO nsp_feed (id, title, url, description) VALUES (NULL, '%q', '%q', '%q')", feed->title, feed->url, feed->description);
 	char *error = NULL;
 	int stat;
+	int feed_id;
 	
 	nsp_db_transaction_begin(db);
 	
@@ -195,13 +254,14 @@ nsp_db_add_feed(NspDb *db, NspFeed *feed, int include_items)
 		return 1;
 	}
 	
+	feed_id = sqlite3_last_insert_rowid(db->db);
 	
 	if ( include_items ) {
 		NspFeedItem *tmp;
 		while ( feed->items != NULL ) {
 			tmp = (NspFeedItem *) feed->items->data;
 			
-			query = sqlite3_mprintf("INSERT INTO nsp_feed_item (id, feed_id, title, url, description) VALUES (NULL, %i, '%q', '%q', '%q')", sqlite3_last_insert_rowid(db->db),tmp->title, tmp->link, tmp->description);
+			query = sqlite3_mprintf("INSERT INTO nsp_feed_item (id, feed_id, title, url, description) VALUES (NULL, %i, '%q', '%q', '%q')", feed_id,tmp->title, tmp->link, tmp->description);
 			
 			stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
 			sqlite3_free(query);
