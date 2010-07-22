@@ -86,7 +86,11 @@ nsp_window_init(NspWindow *win, GError **error)
 	GtkWidget *fl_title;
 	
 	GtkWidget *c2_holder;
+	GtkWidget *f_title_holder;
 	GtkWidget *f_title;
+	
+	GtkWidget *util_button;
+	GtkWidget *util_button_image;
 	
 	GtkWidget *scroll_win;
 	
@@ -113,7 +117,7 @@ nsp_window_init(NspWindow *win, GError **error)
 	
 	/* Set up window properties */
 	gtk_window_set_position(GTK_WINDOW(win->window), GTK_WIN_POS_CENTER);
-	gtk_window_set_default_size(GTK_WINDOW(win->window), 500, 300);
+	gtk_window_set_default_size(GTK_WINDOW(win->window), 600, 350);
 	g_signal_connect(win->window, "destroy", G_CALLBACK(nsp_window_destroy), NULL);
 	
 	/* Set up main container */
@@ -130,15 +134,27 @@ nsp_window_init(NspWindow *win, GError **error)
 	
 	/* LEFT COLUMN */
 	/* Holder */
-	c1_holder = gtk_vbox_new(FALSE, 0);
+	c1_holder = gtk_vbox_new(FALSE, 2);
 	gtk_paned_add1(GTK_PANED(column_holder), c1_holder);
 	
 	
 	/* header */
+	f_title_holder = gtk_hbox_new(FALSE, 2);
+	gtk_box_pack_start(GTK_BOX(c1_holder), f_title_holder, FALSE, FALSE, 2);
+	
+	util_button = gtk_button_new();
+	gtk_button_set_relief(GTK_BUTTON(util_button), GTK_RELIEF_NONE);
+	gtk_box_pack_start(GTK_BOX(f_title_holder), util_button, FALSE, FALSE, 0);
+	
+	util_button_image = gtk_image_new_from_stock(GTK_STOCK_PROPERTIES, GTK_ICON_SIZE_BUTTON);
+	gtk_button_set_image(GTK_BUTTON(util_button), util_button_image);
+	
 	fl_title = gtk_label_new("Feed List");
-	gtk_box_pack_start(GTK_BOX(c1_holder), fl_title, FALSE, FALSE, 0);
+	gtk_misc_set_alignment(GTK_MISC(fl_title), 0, 0.54);
+	gtk_box_pack_start(GTK_BOX(f_title_holder), fl_title, TRUE, TRUE, 0);
+	
+	
 	gtk_label_set_justify(GTK_LABEL(fl_title), GTK_JUSTIFY_LEFT);
-	gtk_misc_set_alignment(GTK_MISC(fl_title), 0, 52);
 	
 	scroll_win = gtk_scrolled_window_new(NULL, NULL);
 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll_win), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
@@ -157,8 +173,25 @@ nsp_window_init(NspWindow *win, GError **error)
 	
 	
 	/* header */
+	f_title_holder = gtk_hbox_new(FALSE, 2);
+	gtk_box_pack_start(GTK_BOX(c2_holder), f_title_holder, FALSE, FALSE, 2);
+	
 	f_title = gtk_label_new("My Feed");
-	gtk_box_pack_start(GTK_BOX(c2_holder), f_title, FALSE, FALSE, 0);
+	gtk_misc_set_alignment(GTK_MISC(f_title), 0, 0.54);
+	gtk_box_pack_start(GTK_BOX(f_title_holder), f_title, TRUE, TRUE, 0);
+	
+	util_button = gtk_entry_new();
+	gtk_entry_set_icon_from_stock(GTK_ENTRY(util_button), GTK_ENTRY_ICON_PRIMARY, GTK_STOCK_FIND);
+	gtk_box_pack_start(GTK_BOX(f_title_holder), util_button, FALSE, FALSE, 0);
+	
+	util_button = gtk_button_new();
+	gtk_button_set_relief(GTK_BUTTON(util_button), GTK_RELIEF_NONE);
+	
+	util_button_image = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_BUTTON);
+	gtk_button_set_image(GTK_BUTTON(util_button), util_button_image);
+	
+	gtk_box_pack_start(GTK_BOX(f_title_holder), util_button, FALSE, FALSE, 0);
+	
 	
 	return 0;
 }
