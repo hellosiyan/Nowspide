@@ -33,7 +33,7 @@ nsp_app_load_feeds(NspApp *app)
 	feeds = app->feeds = nsp_db_load_feeds_with_items(app->db);
 	
 	while ( feeds != NULL ) {
-		nsp_feed_list_view_add(app->window->feed_list, (NspFeed*) feeds->data);
+		nsp_feed_list_add(app->window->feed_list, (NspFeed*) feeds->data);
 		
 		feeds = feeds->next;
 	}

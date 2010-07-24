@@ -19,7 +19,7 @@
  
 #include "config.h"
 #include "nsp-window.h"
-#include "nsp-feed-list-view.h"
+#include "nsp-feed-list.h"
 #include <assert.h>
 #include <stdlib.h>
  
@@ -51,7 +51,7 @@ nsp_window_new()
 	assert(win != NULL);
 	
 	win->builder = gtk_builder_new();
-	win->feed_list = nsp_feed_list_view_new();
+	win->feed_list = nsp_feed_list_new();
 	
 	
 	return win;

@@ -22,7 +22,7 @@
 #define __NSP_WINDOW_H_
 
 #include <gtk/gtk.h>
-#include "nsp-feed-list-view.h"
+#include "nsp-feed-list.h"
 
 typedef struct _NspWindow NspWindow;
 
@@ -30,7 +30,7 @@ struct _NspWindow
 {
 	GtkBuilder *builder;
 	GtkWidget *window;
-	NspFeedListView *feed_list;
+	NspFeedList *feed_list;
 };
 
 NspWindow * nsp_window_new();
