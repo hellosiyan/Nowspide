@@ -98,6 +98,11 @@ nsp_feed_free (NspFeed *feed)
 	if ( feed == NULL)
 		return;
 	
+	while (feed->items != NULL) {
+		nsp_feed_item_free((NspFeedItem*) feed->items->data);
+		feed->items = feed->items->next;
+	}
+	
 	free(feed->title);
 	free(feed->url);
 	free(feed->description);

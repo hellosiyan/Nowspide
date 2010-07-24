@@ -31,6 +31,7 @@
 #include "nsp-window.h"
 #include "nsp-feed-parser.h"
 #include "nsp-db.h"
+#include "nsp-app.h"
 
 void
 handle_url(gpointer data, gpointer user_data ) {
@@ -96,34 +97,11 @@ feed_list_example() {
 int 
 main (int argc, char *argv[])
 {
-	NspDb *db;
-	GError *error = NULL;
-	GList *feeds = NULL;
+	NspApp *app;
 	gtk_init(&argc, &argv);
 	
-	NspWindow *win = nsp_window_new();
+	app = nsp_app_new();
 	
-	if ( nsp_window_init(win, &error) ) {
-		printf("%s\n", error->message);
-		return 0;
-	}
-	
-	db = nsp_db_get();
-	
-	feeds = nsp_db_load_feeds_with_items(db);
-	
-	NspFeed *feed = NULL;
-	while ( feeds != NULL ) {
-		feed = (NspFeed*) feeds->data;
-		nsp_feed_list_view_add(win->feed_list, feed);
-		
-		feeds = feeds->next;
-	}
-	
-	nsp_db_close(db);
-	
-	
-	gtk_widget_show_all(win->window);
 	gtk_main();
 	
 	return 0;
