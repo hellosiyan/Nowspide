@@ -16,25 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
+ 
+#ifndef __NSP_FEED_ITEM_LIST_H__
+#define __NSP_FEED_ITEM_LIST_H__ 1
 
+#include "nsp-feed.h"
+#include <gtk/gtk.h>
 
-#ifndef __NSP_NET_H_
-#define __NSP_NET_H_ 1
+typedef struct _NspFeedItemList NspFeedItemList;
 
-#include <string.h>
-
-typedef struct _NspNetData NspNetData;
-
-struct _NspNetData
-{
-	char *content;
-	size_t size;
-	char *error;
+struct _NspFeedItemList {
+	GtkTreeModel *list_model;
+	GtkWidget *list_view;
 };
 
-NspNetData * nsp_net_new();
+NspFeedItemList * nsp_feed_item_list_new();
 
-int 	nsp_net_load_url	(const char *url, NspNetData *netdata);
-void	nsp_net_free 		(NspNetData *netdata);
+void nsp_feed_item_list_add(NspFeedItemList *list, NspFeedItem *feed_item);
 
-#endif /* __NSP_NET_H_ */
+
+#endif /* __NSP_FEED_ITEM_LIST__ */

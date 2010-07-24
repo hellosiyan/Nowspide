@@ -25,7 +25,7 @@
 #include "nsp-feed.h"
 
 #ifndef __NSP_PARSERS_H__
-#define __NSP_PARSERS_H__
+#define __NSP_PARSERS_H__ 1
 
 GList * nsp_feed_item_parser_rss (xmlNode *xml, GError **error);
 int nsp_feed_parse (xmlDoc *xml, NspFeed *feed);

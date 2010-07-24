@@ -19,7 +19,7 @@
 
 
 #ifndef __NSP_FEED_H_
-#define __NSP_FEED_H_
+#define __NSP_FEED_H_ 1
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>

@@ -18,7 +18,7 @@
  */
  
 #ifndef __NSP_APP_H__
-#define __NSP_APP_H__
+#define __NSP_APP_H__ 1
 
 #include <gtk/gtk.h>
 #include "nsp-window.h"

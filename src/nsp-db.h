@@ -21,7 +21,7 @@
 #include "nsp-feed.h"
 
 #ifndef __NSP_DB_H__
-#define __NSP_DB_H__
+#define __NSP_DB_H__ 1
 
 typedef struct _NspDb NspDb;
 

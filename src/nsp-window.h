@@ -19,7 +19,7 @@
 
 
 #ifndef __NSP_WINDOW_H_
-#define __NSP_WINDOW_H_
+#define __NSP_WINDOW_H_ 1
 
 #include <gtk/gtk.h>
 #include "nsp-feed-list.h"
