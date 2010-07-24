@@ -28,6 +28,7 @@ typedef struct _NspWindow NspWindow;
 
 struct _NspWindow
 {
+	GtkBuilder *builder;
 	GtkWidget *window;
 	NspFeedListView *feed_list;
 };

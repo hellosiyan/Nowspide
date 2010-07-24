@@ -23,7 +23,7 @@
 #include <assert.h>
 #include <stdlib.h>
  
-#define NSP_UI_FILE PACKAGE_DATA_DIR"/nowspide/nowspide-ui.xml"
+#define NSP_UI_FILE PACKAGE_DATA_DIR"/nowspide/nowspide.ui"
 
 enum
 {
@@ -50,7 +50,7 @@ nsp_window_new()
 	NspWindow *win = malloc(sizeof(NspWindow));
 	assert(win != NULL);
 	
-	win->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	win->builder = gtk_builder_new();
 	win->feed_list = nsp_feed_list_view_new();
 	
 	
@@ -77,121 +77,23 @@ nsp_window_destroy (GtkObject *window, NspWindow *win)
 int 
 nsp_window_init(NspWindow *win, GError **error)
 {
-	GtkWidget *main_container;
-	GtkWidget *main_menu;
+	gtk_builder_add_from_file(win->builder, NSP_UI_FILE, error);
 	
-	GtkWidget *column_holder;
-	
-	GtkWidget *c1_holder;
-	GtkWidget *fl_title;
-	
-	GtkWidget *c2_holder;
-	GtkWidget *f_title_holder;
-	GtkWidget *f_title;
-	
-	GtkWidget *util_button;
-	GtkWidget *util_button_image;
-	
-	GtkWidget *scroll_win;
-	
-	assert(error == NULL || *error == NULL );
-	
-    GtkUIManager *ui_mng = gtk_ui_manager_new();
-    GtkActionGroup *actions_window;
-    
-	gtk_ui_manager_add_ui_from_file(ui_mng, NSP_UI_FILE, error);
-	
-	if ( error != NULL && *error != NULL ) {
-		return 1;
-	}
-	
-    actions_window = gtk_action_group_new("MenuActionsWindow");
+    if (error != NULL)
+    {
+        g_warning ("%s\n", (*error)->message);
+        return 1;
+    }
 
-    gtk_action_group_add_actions (actions_window,
-                                  action_entries_window,
-                                  G_N_ELEMENTS (action_entries_window),
-                                  NULL);
-
-    gtk_ui_manager_insert_action_group (ui_mng,
-                                        actions_window, 0);
+	win->window = GTK_WIDGET (gtk_builder_get_object (win->builder, "main_window"));
 	
-	/* Set up window properties */
 	gtk_window_set_position(GTK_WINDOW(win->window), GTK_WIN_POS_CENTER);
-	gtk_window_set_default_size(GTK_WINDOW(win->window), 600, 350);
+	gtk_window_set_default_size(GTK_WINDOW(win->window), 700, 400);
 	g_signal_connect(win->window, "destroy", G_CALLBACK(nsp_window_destroy), NULL);
 	
-	/* Set up main container */
-	main_container = gtk_vbox_new(FALSE, 0);
-	gtk_container_add(GTK_CONTAINER(win->window), main_container);
+	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "scroll_win")), win->feed_list->list_view);
 	
-	/* Set Up Main Menu */
-	main_menu = gtk_ui_manager_get_widget(ui_mng, "/MainMenu");
-	gtk_box_pack_start(GTK_BOX(main_container), main_menu, FALSE, TRUE, 0);
-	
-	/* Column Layout */
-	column_holder = gtk_hpaned_new();
-	gtk_box_pack_start(GTK_BOX(main_container), column_holder, TRUE, TRUE, 0);
-	
-	/* LEFT COLUMN */
-	/* Holder */
-	c1_holder = gtk_vbox_new(FALSE, 2);
-	gtk_paned_add1(GTK_PANED(column_holder), c1_holder);
-	
-	
-	/* header */
-	f_title_holder = gtk_hbox_new(FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(c1_holder), f_title_holder, FALSE, FALSE, 2);
-	
-	util_button = gtk_button_new();
-	gtk_button_set_relief(GTK_BUTTON(util_button), GTK_RELIEF_NONE);
-	gtk_box_pack_start(GTK_BOX(f_title_holder), util_button, FALSE, FALSE, 0);
-	
-	util_button_image = gtk_image_new_from_stock(GTK_STOCK_PROPERTIES, GTK_ICON_SIZE_BUTTON);
-	gtk_button_set_image(GTK_BUTTON(util_button), util_button_image);
-	
-	fl_title = gtk_label_new("Feed List");
-	gtk_misc_set_alignment(GTK_MISC(fl_title), 0, 0.54);
-	gtk_box_pack_start(GTK_BOX(f_title_holder), fl_title, TRUE, TRUE, 0);
-	
-	
-	gtk_label_set_justify(GTK_LABEL(fl_title), GTK_JUSTIFY_LEFT);
-	
-	scroll_win = gtk_scrolled_window_new(NULL, NULL);
-	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scroll_win), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scroll_win), GTK_SHADOW_IN);
-	
-	gtk_widget_set_size_request(scroll_win, 200, -1);
-	gtk_container_add (GTK_CONTAINER (scroll_win), win->feed_list->list_view);
-	
-	gtk_box_pack_start(GTK_BOX(c1_holder), scroll_win, TRUE, TRUE, 0);
-	
-	
-	/* RIGHT COLUMN */
-	/* Holder */
-	c2_holder = gtk_vbox_new(FALSE, 0);
-	gtk_paned_add2(GTK_PANED(column_holder), c2_holder);
-	
-	
-	/* header */
-	f_title_holder = gtk_hbox_new(FALSE, 2);
-	gtk_box_pack_start(GTK_BOX(c2_holder), f_title_holder, FALSE, FALSE, 2);
-	
-	f_title = gtk_label_new("My Feed");
-	gtk_misc_set_alignment(GTK_MISC(f_title), 0, 0.54);
-	gtk_box_pack_start(GTK_BOX(f_title_holder), f_title, TRUE, TRUE, 0);
-	
-	util_button = gtk_entry_new();
-	gtk_entry_set_icon_from_stock(GTK_ENTRY(util_button), GTK_ENTRY_ICON_PRIMARY, GTK_STOCK_FIND);
-	gtk_box_pack_start(GTK_BOX(f_title_holder), util_button, FALSE, FALSE, 0);
-	
-	util_button = gtk_button_new();
-	gtk_button_set_relief(GTK_BUTTON(util_button), GTK_RELIEF_NONE);
-	
-	util_button_image = gtk_image_new_from_stock(GTK_STOCK_REFRESH, GTK_ICON_SIZE_BUTTON);
-	gtk_button_set_image(GTK_BUTTON(util_button), util_button_image);
-	
-	gtk_box_pack_start(GTK_BOX(f_title_holder), util_button, FALSE, FALSE, 0);
-	
+	gtk_widget_set_size_request(GTK_WIDGET (gtk_builder_get_object (win->builder, "scroll_win")), 200, -1);
 	
 	return 0;
 }
