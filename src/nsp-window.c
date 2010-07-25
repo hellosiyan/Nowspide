@@ -52,6 +52,7 @@ nsp_window_new()
 	
 	win->builder = gtk_builder_new();
 	win->feed_list = nsp_feed_list_new();
+	win->feed_item_list = nsp_feed_item_list_new();
 	
 	
 	return win;
@@ -92,6 +93,7 @@ nsp_window_init(NspWindow *win, GError **error)
 	g_signal_connect(win->window, "destroy", G_CALLBACK(nsp_window_destroy), NULL);
 	
 	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "scroll_win")), win->feed_list->list_view);
+	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "feed_item_list_win")), win->feed_item_list->list_view);
 	
 	gtk_widget_set_size_request(GTK_WIDGET (gtk_builder_get_object (win->builder, "scroll_win")), 200, -1);
 	

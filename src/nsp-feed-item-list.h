@@ -32,7 +32,8 @@ struct _NspFeedItemList {
 
 NspFeedItemList * nsp_feed_item_list_new();
 
-void nsp_feed_item_list_add(NspFeedItemList *list, NspFeedItem *feed_item);
+void nsp_feed_item_list_add (NspFeedItemList *list, NspFeedItem *feed_item);
+void nsp_feed_item_list_add_from_list (NspFeedItemList *list, GList *items);
 
 
 #endif /* __NSP_FEED_ITEM_LIST__ */

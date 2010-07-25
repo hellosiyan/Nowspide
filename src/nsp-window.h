@@ -23,6 +23,7 @@
 
 #include <gtk/gtk.h>
 #include "nsp-feed-list.h"
+#include "nsp-feed-item-list.h"
 
 typedef struct _NspWindow NspWindow;
 
@@ -31,6 +32,7 @@ struct _NspWindow
 	GtkBuilder *builder;
 	GtkWidget *window;
 	NspFeedList *feed_list;
+	NspFeedItemList *feed_item_list;
 };
 
 NspWindow * nsp_window_new();

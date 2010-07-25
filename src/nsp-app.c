@@ -34,6 +34,7 @@ nsp_app_load_feeds(NspApp *app)
 	
 	while ( feeds != NULL ) {
 		nsp_feed_list_add(app->window->feed_list, (NspFeed*) feeds->data);
+		nsp_feed_item_list_add_from_list(app->window->feed_item_list, ((NspFeed*) feeds->data)->items);
 		
 		feeds = feeds->next;
 	}

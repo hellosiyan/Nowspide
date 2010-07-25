@@ -73,7 +73,14 @@ nsp_feed_item_list_add (NspFeedItemList *list, NspFeedItem *item)
 					-1);
 	
 	g_free(col_name);
-	
-	printf("Add feed item\n");
+}
+
+void
+nsp_feed_item_list_add_from_list (NspFeedItemList *list, GList *items)
+{
+	while (items != NULL) {
+		nsp_feed_item_list_add(list, (NspFeedItem*)items->data);
+		items = items->next;
+	}
 }
 
