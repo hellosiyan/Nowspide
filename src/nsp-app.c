@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
+static NspApp *_app = NULL;
 
 static void
 nsp_app_load_feeds(NspApp *app)
@@ -34,7 +35,6 @@ nsp_app_load_feeds(NspApp *app)
 	
 	while ( feeds != NULL ) {
 		nsp_feed_list_add(app->window->feed_list, (NspFeed*) feeds->data);
-		nsp_feed_item_list_add_from_list(app->window->feed_item_list, ((NspFeed*) feeds->data)->items);
 		
 		feeds = feeds->next;
 	}
@@ -46,7 +46,19 @@ nsp_app_window_show(NspApp *app)
 	gtk_widget_show_all(app->window->window);
 }
 
-NspApp *
+static void
+nsp_app_feed_list_select (void* user_data)
+{
+	NspApp *app = nsp_app_get();
+	NspFeed *feed = (NspFeed*) user_data;
+	NspFeedItemList *item_list = nsp_feed_item_list_new();
+	
+	nsp_feed_item_list_add_from_list(item_list, feed->items);
+	
+	gtk_tree_view_set_model(GTK_TREE_VIEW(app->window->feed_item_list), item_list->list_model);
+}
+
+static NspApp *
 nsp_app_new ()
 {
 	NspApp *app;
@@ -60,11 +72,23 @@ nsp_app_new ()
 	
 	app->window = nsp_window_new();
 	nsp_window_init(app->window, NULL);
+	
+	app->window->feed_list->on_select = nsp_app_feed_list_select;
+	
 	nsp_app_window_show(app);
 	
 	nsp_app_load_feeds(app);
 	
 	return app;
+}
+
+NspApp *
+nsp_app_get()
+{
+	if ( _app == NULL ) {
+		_app = nsp_app_new();
+	}
+	return _app;
 }
 
 void

@@ -32,7 +32,7 @@ struct _NspWindow
 	GtkBuilder *builder;
 	GtkWidget *window;
 	NspFeedList *feed_list;
-	NspFeedItemList *feed_item_list;
+	GtkWidget *feed_item_list;
 };
 
 NspWindow * nsp_window_new();

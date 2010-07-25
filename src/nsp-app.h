@@ -32,8 +32,7 @@ struct _NspApp {
 	NspDb *db;
 };
 
-NspApp *nsp_app_new();
-void	nsp_app_free(NspApp *app);
+NspApp *nsp_app_get();
 
 
 #endif /* __NSP_APP_H__ */

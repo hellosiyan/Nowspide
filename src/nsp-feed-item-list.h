@@ -27,13 +27,15 @@ typedef struct _NspFeedItemList NspFeedItemList;
 
 struct _NspFeedItemList {
 	GtkTreeModel *list_model;
-	GtkWidget *list_view;
 };
 
 NspFeedItemList * nsp_feed_item_list_new();
 
 void nsp_feed_item_list_add (NspFeedItemList *list, NspFeedItem *feed_item);
 void nsp_feed_item_list_add_from_list (NspFeedItemList *list, GList *items);
+
+
+GtkWidget * nsp_feed_item_list_get_view();
 
 
 #endif /* __NSP_FEED_ITEM_LIST__ */

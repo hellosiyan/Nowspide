@@ -100,7 +100,7 @@ main (int argc, char *argv[])
 	NspApp *app;
 	gtk_init(&argc, &argv);
 	
-	app = nsp_app_new();
+	app = nsp_app_get();
 	
 	gtk_main();
 	

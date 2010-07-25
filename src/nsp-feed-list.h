@@ -23,11 +23,16 @@
 #include <gtk/gtk.h>
 #include "nsp-feed.h"
 
+
+typedef void (NspCallback)(void*);
+
 typedef struct _NspFeedList NspFeedList;
 
 struct _NspFeedList {
 	GtkTreeModel *list_model;
 	GtkWidget *list_view;
+	
+	NspCallback *on_select;
 };
 
 NspFeedList * nsp_feed_list_new();
