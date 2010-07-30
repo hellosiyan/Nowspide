@@ -22,12 +22,6 @@
 #include <gtk/gtk.h>
 #include <assert.h>
 
-enum
-{
-	LIST_COL_NAME = 0,
-	LIST_COL_NUM
-};
-
 NspFeedItemList *
 nsp_feed_item_list_new ()
 {
@@ -40,6 +34,16 @@ nsp_feed_item_list_new ()
 	list->list_model = (GtkTreeModel *)gtk_list_store_new(LIST_COL_NUM, G_TYPE_STRING);
 
 	return list;
+}
+
+GtkListStore *
+nsp_feed_item_list_get_model()
+{
+	GtkListStore *model;
+	
+	model = gtk_list_store_new(LIST_COL_NUM, G_TYPE_STRING);
+	
+	return model;
 }
 
 GtkWidget *
@@ -61,31 +65,5 @@ nsp_feed_item_list_get_view()
 	g_object_set (column, "resizable", TRUE, "expand", TRUE, NULL);
 	
 	return list_view;
-}
-
-void
-nsp_feed_item_list_add (NspFeedItemList *list, NspFeedItem *item)
-{
-	GtkTreeIter iter;
-	char *col_name = NULL;
-	
-	col_name = g_strdup_printf("%s", item->title);
-	
-	
-	gtk_list_store_append (GTK_LIST_STORE(list->list_model), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(list->list_model), &iter,
-					LIST_COL_NAME, col_name,
-					-1);
-	
-	g_free(col_name);
-}
-
-void
-nsp_feed_item_list_add_from_list (NspFeedItemList *list, GList *items)
-{
-	while (items != NULL) {
-		nsp_feed_item_list_add(list, (NspFeedItem*)items->data);
-		items = items->next;
-	}
 }
 

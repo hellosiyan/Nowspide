@@ -25,17 +25,20 @@
 
 typedef struct _NspFeedItemList NspFeedItemList;
 
+enum
+{
+	LIST_COL_NAME = 0,
+	LIST_COL_NUM
+};
+
 struct _NspFeedItemList {
 	GtkTreeModel *list_model;
 };
 
 NspFeedItemList * nsp_feed_item_list_new();
 
-void nsp_feed_item_list_add (NspFeedItemList *list, NspFeedItem *feed_item);
-void nsp_feed_item_list_add_from_list (NspFeedItemList *list, GList *items);
-
-
 GtkWidget * nsp_feed_item_list_get_view();
+GtkListStore * nsp_feed_item_list_get_model();
 
 
 #endif /* __NSP_FEED_ITEM_LIST__ */

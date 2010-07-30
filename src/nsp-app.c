@@ -35,6 +35,7 @@ nsp_app_load_feeds(NspApp *app)
 	
 	while ( feeds != NULL ) {
 		nsp_feed_list_add(app->window->feed_list, (NspFeed*) feeds->data);
+		nsp_feed_load_items_from_db((NspFeed*) feeds->data);
 		
 		feeds = feeds->next;
 	}
@@ -51,11 +52,8 @@ nsp_app_feed_list_select (void* user_data)
 {
 	NspApp *app = nsp_app_get();
 	NspFeed *feed = (NspFeed*) user_data;
-	NspFeedItemList *item_list = nsp_feed_item_list_new();
 	
-	nsp_feed_item_list_add_from_list(item_list, feed->items);
-	
-	gtk_tree_view_set_model(GTK_TREE_VIEW(app->window->feed_item_list), item_list->list_model);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(app->window->feed_item_list), nsp_feed_get_items_model(feed));
 }
 
 static NspApp *

@@ -57,6 +57,7 @@ struct _NspFeed
 	char *url;
 	char *description;
 	GList * items;
+	GtkListStore *items_store;
 };
 
 NspFeedItem	* nsp_feed_item_new();
@@ -64,6 +65,11 @@ void nsp_feed_item_free(NspFeedItem *item);
 
 NspFeed * nsp_feed_new();
 NspFeed * nsp_feed_new_from_url(const char *xml);
+GtkTreeModel *nsp_feed_get_items_model(NspFeed *feed);
+
+int nsp_feed_load_items_from_db(NspFeed *feed);
+
+void nsp_feed_update_model(NspFeed *feed);
 
 void	nsp_feed_free 		(NspFeed *feed);
 

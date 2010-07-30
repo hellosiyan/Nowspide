@@ -19,9 +19,28 @@
 
 #include "nsp-feed.h"
 #include "nsp-feed-parser.h"
+#include "nsp-db.h"
 #include "nsp-net.h"
+#include "nsp-feed-item-list.h"
 #include <assert.h>
 #include <stdlib.h>
+
+
+static int 
+nsp_db_load_feed_items_callback(void *user_data, int argc, char **argv, char ** azColName)
+{
+	GList **feed_items = (GList**) user_data;
+	NspFeedItem *feed_item = nsp_feed_item_new();
+	
+	feed_item->id = atoi(argv[0]);
+	feed_item->feed_id = atoi(argv[1]);
+	feed_item->title = g_strdup(argv[2]);
+	feed_item->link = g_strdup(argv[3]);
+	
+	*feed_items = g_list_prepend(*feed_items, (gpointer) feed_item);
+	
+	return 0;
+}
 
 NspFeedItem *
 nsp_feed_item_new()
@@ -59,7 +78,15 @@ nsp_feed_new()
 	feed->items = NULL;
 	feed->title = feed->url = feed->description = NULL;
 	feed->id = 0;
+	feed->items_store = nsp_feed_item_list_get_model();
+	
 	return feed;
+}
+
+GtkTreeModel *
+nsp_feed_get_items_model (NspFeed *feed)
+{
+	return GTK_TREE_MODEL(feed->items_store);
 }
 
 NspFeed * 
@@ -108,5 +135,55 @@ nsp_feed_free (NspFeed *feed)
 	free(feed->description);
 }
 
+void
+nsp_feed_update_model(NspFeed *feed) {
+	GtkTreeIter iter;
+	NspFeedItem *item;
+	GList *items = feed->items;
+	char *col_name = NULL;
+	
+	while( items != NULL ) {
+		item = (NspFeedItem*) items->data;
+		col_name = g_strdup_printf("%s", item->title);
+	
+	
+		gtk_list_store_append (GTK_LIST_STORE(feed->items_store), &iter);
+		gtk_list_store_set (GTK_LIST_STORE(feed->items_store), &iter,
+						LIST_COL_NAME, col_name,
+						-1);
+	
+		g_free(col_name);
+		
+		items = items->next;
+	}
+	
+}
+
+int
+nsp_feed_load_items_from_db(NspFeed *feed)
+{
+	NspDb *db = nsp_db_get();
+	char *error = NULL;
+	int stat;
+	
+	char *query = sqlite3_mprintf("SELECT id, feed_id, title, url, description FROM nsp_feed_item WHERE feed_id=%i", feed->id);
+	
+	stat = sqlite3_exec(db->db, query, nsp_db_load_feed_items_callback, &(feed->items), &error);
+	sqlite3_free(query);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+		
+		return 1;
+	}
+	nsp_feed_update_model(feed);
+	
+	return 0;
+}
 
 
