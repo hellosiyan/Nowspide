@@ -65,9 +65,12 @@ void nsp_feed_item_free(NspFeedItem *item);
 
 NspFeed * nsp_feed_new();
 NspFeed * nsp_feed_new_from_url(const char *xml);
+
 GtkTreeModel *nsp_feed_get_items_model(NspFeed *feed);
 
 int nsp_feed_load_items_from_db(NspFeed *feed);
+GList * nsp_feed_load_feeds_from_db();
+GList * nsp_feed_load_feeds_with_items_from_db();
 
 void nsp_feed_update_model(NspFeed *feed);
 
