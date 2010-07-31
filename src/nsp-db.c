@@ -64,7 +64,7 @@ nsp_db_create()
 	stat = sqlite3_exec(db_file," \
 		BEGIN TRANSACTION; \
 			CREATE TABLE nsp_feed ( id INTEGER PRIMARY KEY, title TEXT, url TEXT UNIQUE, description TEXT); \
-			CREATE TABLE nsp_feed_item ( id INTEGER PRIMARY KEY, feed_id INTEGER, title TEXT, url TEXT,description TEXT); \
+			CREATE TABLE nsp_feed_item ( id INTEGER PRIMARY KEY, feed_id INTEGER, title TEXT, url TEXT,description TEXT, UNIQUE (feed_id, url)); \
 		COMMIT; \
 		",
 		NULL, NULL, &error
@@ -148,78 +148,6 @@ nsp_db_transaction_end(NspDb *nsp_db)
 		sqlite3_free(error);
 	}
 	nsp_db->transaction_started = 0;
-}
-
-int 
-nsp_db_add_feed(NspDb *db, NspFeed *feed)
-{
-	char *query = sqlite3_mprintf("INSERT INTO nsp_feed (id, title, url, description) VALUES (NULL, '%q', '%q', '%q')", feed->title, feed->url, feed->description);
-	char *error = NULL;
-	int stat;
-	
-	nsp_db_transaction_begin(db);
-	
-	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
-	sqlite3_free(query);
-	
-	if ( stat != SQLITE_OK ) {
-		if ( error == NULL) {
-			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
-		} else {
-			g_warning("Error: %s\n", error);
-			sqlite3_free(error);
-		}
-	
-		nsp_db_transaction_end(db);
-		return 1;
-	}
-	
-	feed->id = sqlite3_last_insert_rowid(db->db);
-	
-	nsp_db_transaction_end(db);
-
-	return 0;
-}
-
-int 
-nsp_db_add_feed_with_items (NspDb *db, NspFeed *feed)
-{
-	NspFeedItem *tmp = NULL;
-	char *query= NULL;
-	char *error = NULL;
-	int stat;
-	
-	nsp_db_transaction_begin(db);
-	
-	if( nsp_db_add_feed(db, feed) ) {
-		return 1;
-	}
-	
-	while ( feed->items != NULL ) {
-		tmp = (NspFeedItem *) feed->items->data;
-		query = sqlite3_mprintf("INSERT INTO nsp_feed_item (id, feed_id, title, url, description) VALUES (NULL, %i, '%q', '%q', '%q')", feed->id,tmp->title, tmp->link, tmp->description);
-		
-		stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
-		sqlite3_free(query);
-		
-		if ( stat != SQLITE_OK ) {
-			if ( error == NULL) {
-				g_warning("Error: %s\n", sqlite3_errmsg(db->db));
-			} else {
-				g_warning("Error: %s\n", error);
-				sqlite3_free(error);
-			}
-
-			nsp_db_transaction_end(db);
-			return 1;
-		}
-		
-		feed->items = feed->items->next;
-	}
-	
-	nsp_db_transaction_end(db);
-	
-	return 0;
 }
 
 

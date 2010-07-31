@@ -37,8 +37,4 @@ void	nsp_db_close();
 void	nsp_db_transaction_begin(NspDb *nsp_db);
 void	nsp_db_transaction_end(NspDb *nsp_db);
 
-int nsp_db_add_feed(NspDb *db, NspFeed *feed);
-int nsp_db_add_feed_with_items(NspDb *db, NspFeed *feed);
-
-
 #endif /* __NSP_DB_H__ */

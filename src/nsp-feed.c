@@ -108,29 +108,13 @@ nsp_feed_get_items_model (NspFeed *feed)
 NspFeed * 
 nsp_feed_new_from_url(const char *url)
 {
-	NspNetData *data;
-	xmlDoc *xml_doc;
-	xmlNode *root;
-	
 	NspFeed * feed = nsp_feed_new();
-	data = nsp_net_new();
+	feed->url = (char*) url;
 	
-	if ( nsp_net_load_url(url, data) ) {
-		g_warning("ERROR: %s\n", data->error);
+	if ( nsp_feed_update_items(feed) ) {
 		nsp_feed_free(feed);
 		return NULL;
 	}
-	
-	xml_doc =  xmlReadMemory(data->content, data->size, NULL, NULL, 0);
-	if ( xml_doc == NULL || !(root = xmlDocGetRootElement(xml_doc)) ) {
-		g_warning("Error parsing xml!\n");
-		nsp_feed_free(feed);
-		return NULL;
-	}
-	
-	feed->url = (char *) url;
-	nsp_feed_parse(xml_doc, feed);
-	feed->items = nsp_feed_item_parser_rss(root, NULL);
 	
 	return feed;
 }
@@ -141,14 +125,58 @@ nsp_feed_free (NspFeed *feed)
 	if ( feed == NULL)
 		return;
 	
-	while (feed->items != NULL) {
-		nsp_feed_item_free((NspFeedItem*) feed->items->data);
-		feed->items = feed->items->next;
-	}
+	nsp_feed_clear_items(feed);
 	
 	free(feed->title);
 	free(feed->url);
 	free(feed->description);
+}
+
+int
+nsp_feed_clear_items(NspFeed *feed)
+{
+	assert(feed != NULL);
+	while (feed->items != NULL) {
+		nsp_feed_item_free((NspFeedItem*) feed->items->data);
+		feed->items = feed->items->next;
+	}
+	return 0;
+}
+
+int
+nsp_feed_update_items(NspFeed *feed)
+{
+	NspNetData *data;
+	xmlDoc *xml_doc;
+	xmlNode *root;
+	
+	data = nsp_net_new();
+	
+	if ( nsp_net_load_url(feed->url, data) ) {
+		g_warning("ERROR: %s\n", data->error);
+		return 1;
+	}
+	
+	xml_doc =  xmlReadMemory(data->content, data->size, NULL, NULL, 0);
+	if ( xml_doc == NULL || !(root = xmlDocGetRootElement(xml_doc)) ) {
+		g_warning("Error parsing xml!\n");
+		return 1;
+	}
+	
+	nsp_feed_parse(xml_doc, feed);
+	
+	nsp_feed_clear_items(feed);
+	feed->items = nsp_feed_item_parser_rss(root, NULL);
+	
+	if ( feed->id != 0 ) {
+		nsp_feed_save_to_db(feed);
+		nsp_feed_load_items_from_db(feed);
+	}
+	
+	nsp_feed_update_model(feed);
+	
+	
+	return 0;
 }
 
 void
@@ -182,7 +210,9 @@ nsp_feed_load_items_from_db(NspFeed *feed)
 	char *error = NULL;
 	int stat;
 	
-	char *query = sqlite3_mprintf("SELECT id, feed_id, title, url, description FROM nsp_feed_item WHERE feed_id=%i", feed->id);
+	char *query = sqlite3_mprintf("SELECT id, feed_id, title, url, description FROM nsp_feed_item WHERE feed_id=%i ORDER BY id DESC", feed->id);
+	
+	nsp_feed_clear_items(feed);
 	
 	stat = sqlite3_exec(db->db, query, nsp_feed_load_feed_items_callback, &(feed->items), &error);
 	sqlite3_free(query);
@@ -240,5 +270,64 @@ nsp_feed_load_feeds_with_items_from_db()
 	}
 	
 	return feeds;
+}
+
+int
+nsp_feed_save_to_db(NspFeed *feed)
+{
+	NspDb *db = nsp_db_get();
+	NspFeedItem *tmp = NULL;
+	GList *tmp_list = NULL;
+	char *error = NULL;
+	int stat;
+	
+	char *query = sqlite3_mprintf("INSERT %s INTO nsp_feed (id, title, url, description) VALUES (%s, '%q', '%q', '%q')", ((feed->id==0) ? "" : "OR REPLACE " ), ((feed->id==0) ? "NULL" : g_strdup_printf("%i", feed->id)),feed->title, feed->url, feed->description);
+	
+	nsp_db_transaction_begin(db);
+	
+	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
+	sqlite3_free(query);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+	
+		nsp_db_transaction_end(db);
+		return 1;
+	}
+	
+	feed->id = sqlite3_last_insert_rowid(db->db);
+	
+	tmp_list = feed->items;
+	while ( tmp_list != NULL ) {
+		tmp = (NspFeedItem *) tmp_list->data;
+		query = sqlite3_mprintf("INSERT OR IGNORE INTO nsp_feed_item (id, feed_id, title, url, description) VALUES (NULL, %i, '%q', '%q', '%q')", feed->id,tmp->title, tmp->link, tmp->description);
+		
+		stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
+		sqlite3_free(query);
+		
+		if ( stat != SQLITE_OK ) {
+			if ( error == NULL) {
+				g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+			} else {
+				g_warning("Error: %s\n", error);
+				sqlite3_free(error);
+			}
+
+			nsp_db_transaction_end(db);
+			return 1;
+		}
+		
+		tmp_list = tmp_list->next;
+	}
+	
+	nsp_db_transaction_end(db);
+	
+	return 0;
+	
 }
 

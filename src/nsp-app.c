@@ -31,11 +31,11 @@ nsp_app_load_feeds(NspApp *app)
 {
 	GList *feeds;
 	assert(app->feeds == NULL);
-	feeds = app->feeds = nsp_feed_load_feeds_with_items_from_db();
+	feeds = app->feeds = nsp_feed_load_feeds_from_db();
 	
 	while ( feeds != NULL ) {
-		nsp_feed_list_add(app->window->feed_list, (NspFeed*) feeds->data);
 		nsp_feed_load_items_from_db((NspFeed*) feeds->data);
+		nsp_feed_list_add(app->window->feed_list, (NspFeed*) feeds->data);
 		
 		feeds = feeds->next;
 	}
