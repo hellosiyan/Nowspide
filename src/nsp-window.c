@@ -34,6 +34,7 @@ enum
 
 static void nsp_window_cmd_about (GtkAction *action, GtkWindow *window);
 static void nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data);
+static void nsp_window_cmd_update_feed (GtkButton *button, gpointer user_data);
 
 static const GtkActionEntry action_entries_window[] = {
     { "File",  NULL, "_File" },
@@ -55,7 +56,7 @@ nsp_window_new()
 	win->builder = gtk_builder_new();
 	win->feed_list = nsp_feed_list_new();
 	win->feed_item_list = nsp_feed_item_list_get_view();
-	win->on_feed_add = NULL;
+	win->on_feed_add = win->on_feed_update = NULL;
 	
 	
 	return win;
@@ -102,6 +103,7 @@ nsp_window_init(NspWindow *win, GError **error)
 	
 	/* Connect signals */
 	g_signal_connect(gtk_builder_get_object(win->builder, "btn_feed_add"), "clicked", G_CALLBACK(nsp_window_cmd_add_feed), win);
+	g_signal_connect(gtk_builder_get_object(win->builder, "btn_update"), "clicked", G_CALLBACK(nsp_window_cmd_update_feed), win);
 	
 	return 0;
 }
@@ -172,3 +174,22 @@ nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data)
 	
 	gtk_widget_destroy(GTK_WIDGET(dialog));
 }
+
+
+static void
+nsp_window_cmd_update_feed(GtkButton *button, gpointer user_data) 
+{
+	NspWindow *win = (NspWindow*) user_data;
+	GtkTreeIter iter;
+	GtkTreeModel *model;
+	NspFeed *feed = NULL;
+	
+	if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(GTK_TREE_VIEW(win->feed_list->list_view)), &model, &iter) ) {
+		gtk_tree_model_get(model, &iter, LIST_COL_FEED_REF, &feed, -1);
+	}
+	
+	if ( feed != NULL && win->on_feed_update != NULL) {
+		win->on_feed_update(feed);
+	}
+}
+

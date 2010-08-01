@@ -33,6 +33,8 @@ struct _NspWindow
 	GtkWidget *window;
 	NspFeedList *feed_list;
 	GtkWidget *feed_item_list;
+	
+	NspCallback *on_feed_update;
 	NspCallback *on_feed_add;
 };
 
