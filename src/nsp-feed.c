@@ -22,6 +22,7 @@
 #include "nsp-db.h"
 #include "nsp-net.h"
 #include "nsp-feed-item-list.h"
+#include "nsp-feed-list.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -140,6 +141,7 @@ nsp_feed_clear_items(NspFeed *feed)
 		nsp_feed_item_free((NspFeedItem*) feed->items->data);
 		feed->items = feed->items->next;
 	}
+	
 	return 0;
 }
 
@@ -166,15 +168,13 @@ nsp_feed_update_items(NspFeed *feed)
 	nsp_feed_parse(xml_doc, feed);
 	
 	nsp_feed_clear_items(feed);
+	
 	feed->items = nsp_feed_item_parser_rss(root, NULL);
 	
 	if ( feed->id != 0 ) {
 		nsp_feed_save_to_db(feed);
 		nsp_feed_load_items_from_db(feed);
 	}
-	
-	nsp_feed_update_model(feed);
-	
 	
 	return 0;
 }
@@ -186,6 +186,7 @@ nsp_feed_update_model(NspFeed *feed) {
 	GList *items = feed->items;
 	char *col_name = NULL;
 	
+	gtk_list_store_clear(GTK_LIST_STORE(feed->items_store));
 	while( items != NULL ) {
 		item = (NspFeedItem*) items->data;
 		col_name = g_strdup_printf("%s", item->title);
@@ -193,7 +194,7 @@ nsp_feed_update_model(NspFeed *feed) {
 	
 		gtk_list_store_append (GTK_LIST_STORE(feed->items_store), &iter);
 		gtk_list_store_set (GTK_LIST_STORE(feed->items_store), &iter,
-						LIST_COL_NAME, col_name,
+						ITEM_LIST_COL_NAME, col_name,
 						-1);
 	
 		g_free(col_name);

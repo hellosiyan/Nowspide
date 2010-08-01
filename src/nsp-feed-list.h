@@ -23,6 +23,13 @@
 #include <gtk/gtk.h>
 #include "nsp-feed.h"
 
+enum
+{
+	LIST_COL_FAVICO = 0,
+	LIST_COL_NAME,
+	LIST_COL_FEED_REF,
+	LIST_COL_NUM
+};
 
 typedef void (NspCallback)(void*);
 

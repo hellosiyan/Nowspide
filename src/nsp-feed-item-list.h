@@ -23,13 +23,13 @@
 #include "nsp-feed.h"
 #include <gtk/gtk.h>
 
-typedef struct _NspFeedItemList NspFeedItemList;
-
 enum
 {
-	LIST_COL_NAME = 0,
-	LIST_COL_NUM
+	ITEM_LIST_COL_NAME = 0,
+	ITEM_LIST_COL_NUM
 };
+
+typedef struct _NspFeedItemList NspFeedItemList;
 
 struct _NspFeedItemList {
 	GtkTreeModel *list_model;

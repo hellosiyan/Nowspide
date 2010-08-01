@@ -56,6 +56,23 @@ nsp_app_feed_list_select (void* user_data)
 	gtk_tree_view_set_model(GTK_TREE_VIEW(app->window->feed_item_list), nsp_feed_get_items_model(feed));
 }
 
+static int
+nsp_app_update_feed(GtkButton *button, gpointer user_data) 
+{
+	NspApp *app = nsp_app_get();
+	GtkTreeIter iter;
+	GtkTreeModel *model;
+	NspFeed *feed = NULL;
+	
+	if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(GTK_TREE_VIEW(app->window->feed_list->list_view)), &model, &iter) ) {
+		gtk_tree_model_get(model, &iter, LIST_COL_FEED_REF, &feed, -1);
+	}
+	
+	nsp_feed_update_items(feed);
+	
+	return 0;
+}
+
 static NspApp *
 nsp_app_new ()
 {
@@ -72,6 +89,7 @@ nsp_app_new ()
 	nsp_window_init(app->window, NULL);
 	
 	app->window->feed_list->on_select = nsp_app_feed_list_select;
+	g_signal_connect(G_OBJECT(gtk_builder_get_object(app->window->builder, "btn_update")), "clicked", G_CALLBACK(nsp_app_update_feed), NULL);
 	
 	nsp_app_window_show(app);
 	

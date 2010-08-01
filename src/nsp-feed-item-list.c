@@ -31,7 +31,7 @@ nsp_feed_item_list_new ()
 	assert(list != NULL);
 	
 	
-	list->list_model = (GtkTreeModel *)gtk_list_store_new(LIST_COL_NUM, G_TYPE_STRING);
+	list->list_model = (GtkTreeModel *)gtk_list_store_new(ITEM_LIST_COL_NUM, G_TYPE_STRING);
 
 	return list;
 }
@@ -41,7 +41,7 @@ nsp_feed_item_list_get_model()
 {
 	GtkListStore *model;
 	
-	model = gtk_list_store_new(LIST_COL_NUM, G_TYPE_STRING);
+	model = gtk_list_store_new(ITEM_LIST_COL_NUM, G_TYPE_STRING);
 	
 	return model;
 }
@@ -59,9 +59,9 @@ nsp_feed_item_list_get_view()
 	gtk_tree_view_set_rules_hint (GTK_TREE_VIEW(list_view), TRUE);
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(list_view), FALSE);
 	
-	column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "markup", LIST_COL_NAME, NULL);
+	column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "markup", ITEM_LIST_COL_NAME, NULL);
 	gtk_tree_view_insert_column (GTK_TREE_VIEW(list_view), column, -1);
-	gtk_tree_view_column_set_sort_column_id (column, LIST_COL_NAME);
+	gtk_tree_view_column_set_sort_column_id (column, ITEM_LIST_COL_NAME);
 	g_object_set (column, "resizable", TRUE, "expand", TRUE, NULL);
 	
 	return list_view;

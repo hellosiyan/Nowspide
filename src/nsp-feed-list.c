@@ -23,14 +23,6 @@
 #include <assert.h>
 #include <gtk/gtk.h>
 
-enum
-{
-	LIST_COL_FAVICO = 0,
-	LIST_COL_NAME,
-	LIST_COL_FEED_REF,
-	LIST_COL_NUM
-};
-
 static GtkCellRenderer *
 nsp_feed_list_renderer_text()
 {	

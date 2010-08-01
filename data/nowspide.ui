@@ -178,7 +178,7 @@
                       <object class="GtkHBox" id="hbox3">
                         <property name="visible">True</property>
                         <child>
-                          <object class="GtkButton" id="button2">
+                          <object class="GtkButton" id="btn_update">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
