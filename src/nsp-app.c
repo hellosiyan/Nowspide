@@ -56,6 +56,21 @@ nsp_app_feed_list_select (void* user_data)
 	gtk_tree_view_set_model(GTK_TREE_VIEW(app->window->feed_item_list), nsp_feed_get_items_model(feed));
 }
 
+static void
+nsp_app_feed_add (void* user_data)
+{
+	NspApp *app = nsp_app_get();
+	char *url = g_strdup((const char*) user_data);
+	NspFeed *feed;
+	
+	if ((feed = nsp_feed_new_from_url(url))) {
+		nsp_feed_update_items(feed);
+		nsp_feed_save_to_db(feed);
+		nsp_feed_update_model(feed);
+		nsp_feed_list_add(app->window->feed_list, feed);
+	}
+}
+
 static int
 nsp_app_update_feed(GtkButton *button, gpointer user_data) 
 {
@@ -88,6 +103,7 @@ nsp_app_new ()
 	app->window = nsp_window_new();
 	nsp_window_init(app->window, NULL);
 	
+	app->window->on_feed_add = nsp_app_feed_add;
 	app->window->feed_list->on_select = nsp_app_feed_list_select;
 	g_signal_connect(G_OBJECT(gtk_builder_get_object(app->window->builder, "btn_update")), "clicked", G_CALLBACK(nsp_app_update_feed), NULL);
 	

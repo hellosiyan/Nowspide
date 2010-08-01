@@ -33,6 +33,8 @@ enum
 };
 
 static void nsp_window_cmd_about (GtkAction *action, GtkWindow *window);
+static void nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data);
+
 static const GtkActionEntry action_entries_window[] = {
     { "File",  NULL, "_File" },
     { "Help",  NULL, "_Help" },
@@ -53,6 +55,7 @@ nsp_window_new()
 	win->builder = gtk_builder_new();
 	win->feed_list = nsp_feed_list_new();
 	win->feed_item_list = nsp_feed_item_list_get_view();
+	win->on_feed_add = NULL;
 	
 	
 	return win;
@@ -97,6 +100,9 @@ nsp_window_init(NspWindow *win, GError **error)
 	
 	gtk_widget_set_size_request(GTK_WIDGET (gtk_builder_get_object (win->builder, "scroll_win")), 200, -1);
 	
+	/* Connect signals */
+	g_signal_connect(gtk_builder_get_object(win->builder, "btn_feed_add"), "clicked", G_CALLBACK(nsp_window_cmd_add_feed), win);
+	
 	return 0;
 }
 
@@ -131,4 +137,38 @@ nsp_window_cmd_about (GtkAction *action, GtkWindow *window)
                    "wrap-license", TRUE,
                    "license", license,
                    NULL);
+}
+
+static void 
+nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data)
+{
+	NspWindow *win = (NspWindow*)user_data;
+	GtkDialog *dialog = (GtkDialog*)gtk_dialog_new();
+	GtkWidget *dialog_content = gtk_dialog_get_content_area(dialog);
+	GtkWidget *input_area = gtk_entry_new();
+	GtkWidget *alignment = NULL;
+	GtkWidget *label = gtk_label_new(NULL);
+		
+	gtk_label_set_markup (GTK_LABEL (label), "<b>Feed Source</b>\n<small>Enter the URL of the feed.</small>");
+	
+	alignment = gtk_alignment_new(0, 0, 0, 0);
+	gtk_alignment_set_padding(GTK_ALIGNMENT(alignment), 5, 5, 5, 5);
+	gtk_container_add (GTK_CONTAINER (alignment), label);
+	gtk_box_pack_start (GTK_BOX (dialog_content), alignment, FALSE, FALSE, 0);
+	
+	alignment = gtk_alignment_new(0, 0, 0, 0);
+	gtk_alignment_set_padding(GTK_ALIGNMENT(alignment), 0, 5, 5, 5);
+	gtk_widget_set_size_request(input_area, 250, -1);
+	gtk_container_add (GTK_CONTAINER (alignment), input_area);
+	gtk_box_pack_start (GTK_BOX (dialog_content), alignment, FALSE, FALSE, 0);
+		
+	gtk_widget_show_all(GTK_WIDGET(dialog_content));
+	gtk_dialog_add_buttons(dialog, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_ADD, GTK_RESPONSE_OK, NULL);
+	gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
+	
+	if (gtk_dialog_run(dialog) == GTK_RESPONSE_OK && win->on_feed_add != NULL) {
+		win->on_feed_add((void*)gtk_entry_get_text(GTK_ENTRY(input_area)));
+	}
+	
+	gtk_widget_destroy(GTK_WIDGET(dialog));
 }

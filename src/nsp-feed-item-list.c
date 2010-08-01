@@ -59,7 +59,7 @@ nsp_feed_item_list_get_view()
 	gtk_tree_view_set_rules_hint (GTK_TREE_VIEW(list_view), TRUE);
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(list_view), FALSE);
 	
-	column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "markup", ITEM_LIST_COL_NAME, NULL);
+	column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "text", ITEM_LIST_COL_NAME, NULL);
 	gtk_tree_view_insert_column (GTK_TREE_VIEW(list_view), column, -1);
 	gtk_tree_view_column_set_sort_column_id (column, ITEM_LIST_COL_NAME);
 	g_object_set (column, "resizable", TRUE, "expand", TRUE, NULL);
