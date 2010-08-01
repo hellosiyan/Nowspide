@@ -99,6 +99,8 @@ main (int argc, char *argv[])
 {
 	NspApp *app;
 	gtk_init(&argc, &argv);
+	g_thread_init(NULL);
+	gdk_threads_init();
 	
 	app = nsp_app_get();
 	

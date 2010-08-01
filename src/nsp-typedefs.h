@@ -18,30 +18,9 @@
  */
 
 
-#ifndef __NSP_WINDOW_H_
-#define __NSP_WINDOW_H_ 1
+#ifndef __NSP_TYPEDEFS_H_
+#define __NSP_TYPEDEFS_H_ 1
 
-#include <gtk/gtk.h>
-#include "nsp-typedefs.h"
-#include "nsp-feed-list.h"
-#include "nsp-feed-item-list.h"
+typedef void (NspCallback)(void*);
 
-typedef struct _NspWindow NspWindow;
-
-struct _NspWindow
-{
-	GtkBuilder *builder;
-	GtkWidget *window;
-	NspFeedList *feed_list;
-	GtkWidget *feed_item_list;
-	
-	NspCallback *on_feed_update;
-	NspCallback *on_feed_add;
-};
-
-NspWindow * nsp_window_new();
-
-void	nsp_window_free 		(NspWindow *window);
-int 	nsp_window_init (NspWindow *window, GError **error);
-
-#endif /* __NSP_WINDOW_H_ */
+#endif /* __NSP_TYPEDEFS_H_ */

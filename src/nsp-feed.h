@@ -25,6 +25,7 @@
 #include <libxml/tree.h>
 #include <gtk/gtk.h>
 #include <time.h>
+#include "nsp-typedefs.h"
 
 typedef enum {
 	NSP_FEED_UNKNOWN,

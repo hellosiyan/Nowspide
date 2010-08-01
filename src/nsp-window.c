@@ -20,6 +20,8 @@
 #include "config.h"
 #include "nsp-window.h"
 #include "nsp-feed-list.h"
+#include "nsp-jobs.h"
+#include "nsp-app.h"
 #include <assert.h>
 #include <stdlib.h>
  
@@ -144,6 +146,7 @@ nsp_window_cmd_about (GtkAction *action, GtkWindow *window)
 static void 
 nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data)
 {
+	NspApp *app = nsp_app_get();
 	NspWindow *win = (NspWindow*)user_data;
 	GtkDialog *dialog = (GtkDialog*)gtk_dialog_new();
 	GtkWidget *dialog_content = gtk_dialog_get_content_area(dialog);
@@ -169,7 +172,7 @@ nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data)
 	gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
 	
 	if (gtk_dialog_run(dialog) == GTK_RESPONSE_OK && win->on_feed_add != NULL) {
-		win->on_feed_add((void*)gtk_entry_get_text(GTK_ENTRY(input_area)));
+		nsp_jobs_queue(app->jobs, nsp_job_new(win->on_feed_add, (void*)gtk_entry_get_text(GTK_ENTRY(input_area))));
 	}
 	
 	gtk_widget_destroy(GTK_WIDGET(dialog));

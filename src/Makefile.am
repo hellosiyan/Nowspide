@@ -3,6 +3,7 @@ bin_PROGRAMS = nowspide
 QUIET_GEN = $(Q:@=@echo '  GEN   '$@;)
 
 nowspide_SOURCES =      \
+	nsp-typedefs.h			\
 	nsp-net.c				\
 	nsp-net.h				\
 	nsp-window.c			\
@@ -19,6 +20,8 @@ nowspide_SOURCES =      \
 	nsp-db.h				\
 	nsp-app.c				\
 	nsp-app.h				\
+	nsp-jobs.c				\
+	nsp-jobs.h				\
     main.c              
 
 nowspide_CFLAGS =       \

@@ -31,8 +31,6 @@ enum
 	LIST_COL_NUM
 };
 
-typedef void (NspCallback)(void*);
-
 typedef struct _NspFeedList NspFeedList;
 
 struct _NspFeedList {

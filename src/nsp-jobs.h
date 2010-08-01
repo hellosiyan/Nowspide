@@ -15,33 +15,35 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
- */
+ */ 
 
 
-#ifndef __NSP_WINDOW_H_
-#define __NSP_WINDOW_H_ 1
+#ifndef __NSP_JOBS_H__
+#define __NSP_JOBS_H__ 1
 
 #include <gtk/gtk.h>
 #include "nsp-typedefs.h"
-#include "nsp-feed-list.h"
-#include "nsp-feed-item-list.h"
 
-typedef struct _NspWindow NspWindow;
+typedef struct _NspJob NspJob;
 
-struct _NspWindow
-{
-	GtkBuilder *builder;
-	GtkWidget *window;
-	NspFeedList *feed_list;
-	GtkWidget *feed_item_list;
-	
-	NspCallback *on_feed_update;
-	NspCallback *on_feed_add;
+struct _NspJob {
+	NspCallback *worker;
+	void *data;
 };
 
-NspWindow * nsp_window_new();
+NspJob *nsp_job_new(NspCallback *worker, void* data);
 
-void	nsp_window_free 		(NspWindow *window);
-int 	nsp_window_init (NspWindow *window, GError **error);
+typedef struct _NspJobs NspJobs;
 
-#endif /* __NSP_WINDOW_H_ */
+struct _NspJobs {
+	GThreadPool *pool;
+};
+
+NspJobs * nsp_jobs_new();
+
+int nsp_jobs_queue(NspJobs *jobs, NspJob *job);
+
+void nsp_jobs_free(NspJobs *jobs);
+
+
+#endif /* __NSP_JOBS_H__ */

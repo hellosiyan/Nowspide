@@ -23,6 +23,7 @@
 #include <gtk/gtk.h>
 #include "nsp-window.h"
 #include "nsp-db.h"
+#include "nsp-jobs.h"
 
 typedef struct _NspApp NspApp;
 
@@ -30,6 +31,7 @@ struct _NspApp {
 	GList *feeds;
 	NspWindow *window;
 	NspDb *db;
+	NspJobs *jobs;
 };
 
 NspApp *nsp_app_get();

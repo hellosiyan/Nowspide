@@ -36,6 +36,7 @@ nsp_app_load_feeds(NspApp *app)
 	while ( feeds != NULL ) {
 		nsp_feed_load_items_from_db((NspFeed*) feeds->data);
 		nsp_feed_list_add(app->window->feed_list, (NspFeed*) feeds->data);
+		nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_feed_update_items, (void*)feeds->data));
 		
 		feeds = feeds->next;
 	}
@@ -65,16 +66,18 @@ nsp_app_feed_add (void* user_data)
 	
 	if ((feed = nsp_feed_new_from_url(url))) {
 		nsp_feed_update_items(feed);
-		nsp_feed_save_to_db(feed);
-		nsp_feed_update_model(feed);
-		nsp_feed_list_add(app->window->feed_list, feed);
+		if (!nsp_feed_save_to_db(feed)) {
+			nsp_feed_update_model(feed);
+			nsp_feed_list_add(app->window->feed_list, feed);
+		}
 	}
 }
 
 static void 
 nsp_app_feed_update (void* user_data)
 {
-	nsp_feed_update_items((NspFeed*)user_data);
+	NspApp *app = nsp_app_get();
+	nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_feed_update_items, user_data));
 }
 
 static NspApp *
@@ -88,6 +91,8 @@ nsp_app_new ()
 	app->feeds = NULL;
 	
 	app->db = nsp_db_get();
+	
+	app->jobs = nsp_jobs_new();
 	
 	app->window = nsp_window_new();
 	nsp_window_init(app->window, NULL);
