@@ -26,6 +26,22 @@
 
 static NspApp *_app = NULL;
 
+static void 
+nsp_app_feed_update_real (void* user_data)
+{
+	nsp_feed_update_items((NspFeed*)user_data);
+	GDK_THREADS_ENTER();
+	nsp_feed_update_model((NspFeed*)user_data);
+	GDK_THREADS_LEAVE();
+}
+
+static void 
+nsp_app_feed_update(void* user_data)
+{
+	NspApp *app = nsp_app_get();
+	nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_app_feed_update_real, user_data));
+}
+
 static void
 nsp_app_load_feeds(NspApp *app)
 {
@@ -35,12 +51,13 @@ nsp_app_load_feeds(NspApp *app)
 	
 	while ( feeds != NULL ) {
 		nsp_feed_load_items_from_db((NspFeed*) feeds->data);
+		nsp_feed_update_model((NspFeed*) feeds->data);
 		nsp_feed_list_add(app->window->feed_list, (NspFeed*) feeds->data);
-		nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_feed_update_items, (void*)feeds->data));
 		
 		feeds = feeds->next;
 	}
 }
+
 
 static void
 nsp_app_window_show(NspApp *app)
@@ -67,18 +84,14 @@ nsp_app_feed_add (void* user_data)
 	if ((feed = nsp_feed_new_from_url(url))) {
 		nsp_feed_update_items(feed);
 		if (!nsp_feed_save_to_db(feed)) {
+			GDK_THREADS_ENTER();
 			nsp_feed_update_model(feed);
+			GDK_THREADS_LEAVE();
 			nsp_feed_list_add(app->window->feed_list, feed);
 		}
 	}
 }
 
-static void 
-nsp_app_feed_update (void* user_data)
-{
-	NspApp *app = nsp_app_get();
-	nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_feed_update_items, user_data));
-}
 
 static NspApp *
 nsp_app_new ()

@@ -186,7 +186,6 @@ nsp_feed_update_model(NspFeed *feed) {
 	GList *items = feed->items;
 	char *col_name = NULL;
 	
-	GDK_THREADS_ENTER();
 	gtk_list_store_clear(GTK_LIST_STORE(feed->items_store));
 	while( items != NULL ) {
 		item = (NspFeedItem*) items->data;
@@ -202,8 +201,6 @@ nsp_feed_update_model(NspFeed *feed) {
 		
 		items = items->next;
 	}
-	GDK_THREADS_LEAVE();
-	
 }
 
 int
@@ -230,7 +227,6 @@ nsp_feed_load_items_from_db(NspFeed *feed)
 		
 		return 1;
 	}
-	nsp_feed_update_model(feed);
 	
 	return 0;
 }
