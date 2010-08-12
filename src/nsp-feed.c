@@ -25,6 +25,7 @@
 #include "nsp-feed-list.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <time.h>
 
 
 static int 
@@ -37,6 +38,10 @@ nsp_feed_load_feed_items_callback(void *user_data, int argc, char **argv, char *
 	feed_item->feed_id = atoi(argv[1]);
 	feed_item->title = g_strdup(argv[2]);
 	feed_item->link = g_strdup(argv[3]);
+	time_t time = (time_t)atol(argv[5]);
+	
+	feed_item->pubdate = malloc(sizeof(struct tm));
+	memcpy( feed_item->pubdate, localtime(&time), sizeof(struct tm));
 	
 	*feed_items = g_list_prepend(*feed_items, (gpointer) feed_item);
 	
@@ -184,20 +189,22 @@ nsp_feed_update_model(NspFeed *feed) {
 	GtkTreeIter iter;
 	NspFeedItem *item;
 	GList *items = feed->items;
-	char *col_name = NULL;
+	char *col_name = NULL, *col_date = NULL;
 	
 	gtk_list_store_clear(GTK_LIST_STORE(feed->items_store));
 	while( items != NULL ) {
 		item = (NspFeedItem*) items->data;
 		col_name = g_strdup_printf("%s", item->title);
-	
+		col_date = g_strdup_printf("%.2i-%.2i-%.2i %.2i:%.2i", item->pubdate->tm_mday, item->pubdate->tm_mon, item->pubdate->tm_year-100, item->pubdate->tm_hour, item->pubdate->tm_min);
 	
 		gtk_list_store_append (GTK_LIST_STORE(feed->items_store), &iter);
 		gtk_list_store_set (GTK_LIST_STORE(feed->items_store), &iter,
+						ITEM_LIST_COL_DATE, col_date,
 						ITEM_LIST_COL_NAME, col_name,
 						-1);
 	
 		g_free(col_name);
+		g_free(col_date);
 		
 		items = items->next;
 	}
@@ -210,7 +217,7 @@ nsp_feed_load_items_from_db(NspFeed *feed)
 	char *error = NULL;
 	int stat;
 	
-	char *query = sqlite3_mprintf("SELECT id, feed_id, title, url, description FROM nsp_feed_item WHERE feed_id=%i ORDER BY id DESC", feed->id);
+	char *query = sqlite3_mprintf("SELECT id, feed_id, title, url, description, date FROM nsp_feed_item WHERE feed_id=%i ORDER BY id DESC", feed->id);
 	
 	nsp_feed_clear_items(feed);
 	
@@ -304,7 +311,12 @@ nsp_feed_save_to_db(NspFeed *feed)
 	tmp_list = feed->items;
 	while ( tmp_list != NULL ) {
 		tmp = (NspFeedItem *) tmp_list->data;
-		query = sqlite3_mprintf("INSERT OR IGNORE INTO nsp_feed_item (id, feed_id, title, url, description) VALUES (NULL, %i, '%q', '%q', '%q')", feed->id,tmp->title, tmp->link, tmp->description);
+		time_t date = 0;
+		if ( tmp->pubdate ) {
+			date = timegm(tmp->pubdate);
+		}
+		
+		query = sqlite3_mprintf("INSERT OR IGNORE INTO nsp_feed_item (id, feed_id, title, url, description, date) VALUES (NULL, %i, '%q', '%q', '%q', %i)", feed->id,tmp->title, tmp->link, tmp->description, date);
 		
 		stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
 		sqlite3_free(query);

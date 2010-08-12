@@ -64,7 +64,7 @@ nsp_db_create()
 	stat = sqlite3_exec(db_file," \
 		BEGIN TRANSACTION; \
 			CREATE TABLE nsp_feed ( id INTEGER PRIMARY KEY, title TEXT, url TEXT UNIQUE, description TEXT); \
-			CREATE TABLE nsp_feed_item ( id INTEGER PRIMARY KEY, feed_id INTEGER, title TEXT, url TEXT,description TEXT, UNIQUE (feed_id, url)); \
+			CREATE TABLE nsp_feed_item ( id INTEGER PRIMARY KEY, feed_id INTEGER, title TEXT, url TEXT,description TEXT, date INTEGER, UNIQUE (feed_id, url)); \
 		COMMIT; \
 		",
 		NULL, NULL, &error
