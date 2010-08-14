@@ -75,7 +75,7 @@ nsp_feed_list_new()
 	GtkCellRenderer *renderer = nsp_feed_list_renderer_text();
 	
 	
-	list->list_model = (GtkTreeModel *)gtk_list_store_new(LIST_COL_NUM, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT);
+	list->list_model = (GtkTreeModel *)gtk_tree_store_new(LIST_COL_NUM, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_POINTER);
 	
 	list->list_view = gtk_tree_view_new();
 	gtk_tree_view_set_rules_hint (GTK_TREE_VIEW(list->list_view), TRUE);
@@ -111,8 +111,8 @@ nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
 	col_name = g_strdup_printf("%s\n<span color='#666666'><small>%s</small></span>", feed->title, feed->description);
 	
 	
-	gtk_list_store_append (GTK_LIST_STORE(list->list_model), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(list->list_model), &iter,
+	gtk_tree_store_append (GTK_TREE_STORE(list->list_model), &iter, NULL);
+	gtk_tree_store_set (GTK_TREE_STORE(list->list_model), &iter,
 					LIST_COL_FAVICO, GTK_STOCK_INFO,
 					LIST_COL_NAME, col_name,
 					LIST_COL_FEED_REF, feed,

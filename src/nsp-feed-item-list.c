@@ -31,17 +31,17 @@ nsp_feed_item_list_new ()
 	assert(list != NULL);
 	
 	
-	list->list_model = (GtkTreeModel *)gtk_list_store_new(ITEM_LIST_COL_NUM, G_TYPE_STRING, G_TYPE_STRING);
+	list->list_model = (GtkTreeModel *)gtk_tree_store_new(ITEM_LIST_COL_NUM, G_TYPE_STRING, G_TYPE_STRING);
 
 	return list;
 }
 
-GtkListStore *
+GtkTreeStore *
 nsp_feed_item_list_get_model()
 {
-	GtkListStore *model;
+	GtkTreeStore *model;
 	
-	model = gtk_list_store_new(ITEM_LIST_COL_NUM, G_TYPE_STRING, G_TYPE_STRING);
+	model = gtk_tree_store_new(ITEM_LIST_COL_NUM, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_POINTER);
 	
 	return model;
 }

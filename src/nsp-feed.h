@@ -58,7 +58,8 @@ struct _NspFeed
 	char *url;
 	char *description;
 	GList * items;
-	GtkListStore *items_store;
+	GtkTreeStore *items_store;
+	GtkTreeModel *items_sorter;
 };
 
 NspFeedItem	* nsp_feed_item_new();

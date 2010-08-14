@@ -27,6 +27,7 @@ enum
 {
 	ITEM_LIST_COL_DATE = 0,
 	ITEM_LIST_COL_NAME,
+	ITEM_LIST_COL_ITEM_REF,
 	ITEM_LIST_COL_NUM
 };
 
@@ -39,7 +40,7 @@ struct _NspFeedItemList {
 NspFeedItemList * nsp_feed_item_list_new();
 
 GtkWidget * nsp_feed_item_list_get_view();
-GtkListStore * nsp_feed_item_list_get_model();
+GtkTreeStore * nsp_feed_item_list_get_model();
 
 
 #endif /* __NSP_FEED_ITEM_LIST__ */
