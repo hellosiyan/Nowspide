@@ -68,7 +68,7 @@ nsp_net_load_url(const char *url, NspNetData *netdata) {
 void
 nsp_net_free (NspNetData *netdata) {
 	if ( netdata == NULL)
-		return
+		return;
 		
 	free (netdata->content);
 	netdata->size = 0;

@@ -42,6 +42,9 @@ nsp_jobs_main_loop(gpointer data, gpointer user_data)
 	if ( job != NULL && job->worker != NULL) {
 		job->worker(job->data);
 	}
+	if (job != NULL) {
+		free(job);
+	}
 }
 
 NspJobs *

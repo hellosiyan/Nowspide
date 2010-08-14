@@ -37,24 +37,24 @@ nsp_feed_parse_type(xmlNode *node)
 {
 	if (node->name && node->type == XML_ELEMENT_NODE) {
 		if (strcmp((const char *)node->name, "rss")==0) {
-			const char * version = (const char *)xmlGetProp(node, (const xmlChar *)"version");
+			xmlChar * version = xmlGetProp(node, (const xmlChar *)"version");
 			if (!version) {
-				xmlFree((void *)version);
+				xmlFree(version);
 				g_warning("no RSS version");
 			}
-			if (strcmp(version, "0.91")==0)
+			if (strcmp((char*)version, "0.91")==0)
 				return NSP_FEED_RSS_0_9;
-			else if (strcmp(version, "0.92")==0)
+			else if (strcmp((char*)version, "0.92")==0)
 				return NSP_FEED_RSS_0_9;
-			else if (strcmp(version, "0.94")==0)
+			else if (strcmp((char*)version, "0.94")==0)
 				return NSP_FEED_RSS_0_9;
-			else if (strcmp(version, "2.0")==0 || strcmp(version, "2")==0)
+			else if (strcmp((char*)version, "2.0")==0 || strcmp((char*)version, "2")==0)
 				return NSP_FEED_RSS_2_0;
 			else {
-				xmlFree((void *)version);
+				xmlFree(version);
 				g_warning("invalid RSS version");
 			}
-			xmlFree((void *)version);
+			xmlFree(version);
 		} else if (strcmp((const char *)node->name, "RDF")==0) {
 			return NSP_FEED_RSS_1_0;
 		} else if (strcmp((const char *)node->name, "feed")==0) {

@@ -81,12 +81,12 @@ nsp_db_create()
 NspDb *
 nsp_db_get()
 {
-	char *path = g_build_filename( g_get_user_data_dir(), PACKAGE, "/nsp.db", NULL);
-	int stat;
-	
 	if ( db != NULL ) {
 		return db;
 	}
+	
+	char *path = g_build_filename( g_get_user_data_dir(), PACKAGE, "/nsp.db", NULL);
+	int stat;
 	
 	db = nsp_db_new();
 	
@@ -98,6 +98,7 @@ nsp_db_get()
 			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
 		}
 	}
+	g_free(path);
 	
 	return db;
 }

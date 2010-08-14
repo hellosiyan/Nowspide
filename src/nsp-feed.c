@@ -181,26 +181,27 @@ nsp_feed_update_items(NspFeed *feed)
 {
 	NspNetData *data;
 	xmlDoc *xml_doc;
-	xmlNode *root;
 	
 	data = nsp_net_new();
 	
 	if ( nsp_net_load_url(feed->url, data) ) {
 		g_warning("ERROR: %s\n", data->error);
+		nsp_net_free(data);
 		return 1;
 	}
 	
 	xml_doc =  xmlReadMemory(data->content, data->size, NULL, NULL, 0);
-	if ( xml_doc == NULL || !(root = xmlDocGetRootElement(xml_doc)) ) {
+	if ( xml_doc == NULL ) {
 		g_warning("Error parsing xml!\n");
+		nsp_net_free(data);
 		return 1;
 	}
 	
+	nsp_feed_clear_items(feed);
 	nsp_feed_parse(xml_doc, feed);
 	
-	nsp_feed_clear_items(feed);
-	
-	feed->items = nsp_feed_item_parser_rss(root, NULL);
+	xmlFreeDoc(xml_doc);
+	nsp_net_free(data);
 	
 	if ( feed->id != 0 ) {
 		nsp_feed_save_to_db(feed);
@@ -312,14 +313,16 @@ nsp_feed_save_to_db(NspFeed *feed)
 	NspFeedItem *tmp = NULL;
 	GList *tmp_list = NULL;
 	char *error = NULL;
+	char *feed_id = g_strdup_printf("%i", feed->id);
 	int stat;
 	
-	char *query = sqlite3_mprintf("INSERT %s INTO nsp_feed (id, title, url, description) VALUES (%s, '%q', '%q', '%q')", ((feed->id==0) ? "" : "OR REPLACE " ), ((feed->id==0) ? "NULL" : g_strdup_printf("%i", feed->id)),feed->title, feed->url, feed->description);
+	char *query = sqlite3_mprintf("INSERT %s INTO nsp_feed (id, title, url, description) VALUES (%s, '%q', '%q', '%q')", ((feed->id==0) ? "" : "OR REPLACE " ), ((feed->id==0) ? "NULL" : feed_id),feed->title, feed->url, feed->description);
 	
 	nsp_db_transaction_begin(db);
 	
 	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
 	sqlite3_free(query);
+	g_free(feed_id);
 	
 	if ( stat != SQLITE_OK ) {
 		if ( error == NULL) {
