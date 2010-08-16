@@ -88,34 +88,6 @@ nsp_feed_parse_type(xmlNode *node)
 	return NSP_FEED_UNKNOWN;
 }
 
-
-static int
-nsp_feed_parse_rss(xmlNode *node, NspFeed *feed)
-{
-	xmlNode *tmp = node->children;
-	
-	while ( tmp != NULL ) {
-		if ( !xmlStrcasecmp(tmp->name, (xmlChar *)"channel") ) {
-			tmp = tmp->children;
-			
-			while ( tmp != NULL ) {
-				if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "title") ) {
-					feed->title = (char *) xmlNodeGetContent(tmp);
-				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "description") ) {
-					feed->description = (char *) xmlNodeGetContent(tmp);
-				}
-				
-				tmp = tmp->next;
-			}
-			
-			break; // parse only one channel per feed
-		}
-		tmp = tmp->next;
-	}
-	return 0;
-}
-
-
 GList *
 nsp_feed_item_parser_rss (xmlNode *root, GError **error) {
 	xmlNode *tpm = NULL;
@@ -183,7 +155,7 @@ nsp_feed_parse (xmlDoc *xml, NspFeed *feed)
 		case NSP_FEED_RSS_2_0:
 		case NSP_FEED_RSS_1_0:
 		case NSP_FEED_RSS_0_9:
-			nsp_feed_parse_rss(node, feed);
+			feed->items = nsp_feed_item_parser_rss(node, NULL);
 			break;
 		default:
 			break;

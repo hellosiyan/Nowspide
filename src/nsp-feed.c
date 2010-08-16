@@ -183,7 +183,6 @@ nsp_feed_update_items(NspFeed *feed)
 	xmlDoc *xml_doc;
 	
 	data = nsp_net_new();
-	
 	if ( nsp_net_load_url(feed->url, data) ) {
 		g_warning("ERROR: %s\n", data->error);
 		nsp_net_free(data);

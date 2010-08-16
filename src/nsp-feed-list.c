@@ -92,6 +92,7 @@ nsp_feed_list_new()
 	
 	
 	gtk_tree_view_set_model(GTK_TREE_VIEW(list->list_view), list->list_model);
+	gtk_tree_view_set_show_expanders(GTK_TREE_VIEW(list->list_view), FALSE);
 	
 	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(list->list_view));
 	gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);

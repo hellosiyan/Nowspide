@@ -70,8 +70,7 @@ nsp_feed_item_list_get_view()
 	gtk_tree_view_column_set_sort_column_id (column, ITEM_LIST_COL_NAME);
 	g_object_set (column, "resizable", TRUE, "expand", TRUE, NULL);
 	
-	
-	
+	gtk_tree_view_set_show_expanders(GTK_TREE_VIEW(list_view), FALSE);
 	
 	return list_view;
 }

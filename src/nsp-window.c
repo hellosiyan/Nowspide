@@ -38,15 +38,40 @@ static void nsp_window_cmd_about (GtkAction *action, GtkWindow *window);
 static void nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data);
 static void nsp_window_cmd_update_feed (GtkButton *button, gpointer user_data);
 
+
+const char *xml = 
+"<?xml version=\"1.0\"?><interface> <requires lib=\"gtk+\" version=\"2.16\"/>"
+"<object class=\"GtkUIManager\" id=\"uiman\">"
+	"<child>"
+		"<object class=\"GtkActionGroup\" id=\"actiongroup\" />"
+	"</child>"
+	"<ui>"
+		"<menubar name=\"menubar1\">"
+			"<menu action=\"Feeds\">"
+      	"<menuitem action=\"FeedAdd\"/>"
+  		"<separator/>"
+      	"<menuitem action=\"FileClose\"/>"
+      	"<menuitem action=\"FileQuit\"/>"
+			"</menu>"
+			"<menu action=\"Help\">"
+      	"<menuitem action=\"HelpAbout\"/>"
+			"</menu>"
+		"</menubar>"
+	"</ui>"
+"</object></interface>";
+
 static const GtkActionEntry action_entries_window[] = {
-    { "File",  NULL, "_File" },
+    { "Feeds",  NULL, "_Feeds" },
     { "Help",  NULL, "_Help" },
 
-    { "FileClose", GTK_STOCK_CLOSE, "Close", "<control>w",
-      "Close Window",NULL },
-     
-    { "HelpAbout", GTK_STOCK_FILE, "About", "<control>O",
-      "Show About dialog", G_CALLBACK(nsp_window_cmd_about) }
+    { "FeedAdd", GTK_STOCK_ADD, "_Add", NULL,
+      "Add Feed", G_CALLBACK(nsp_window_cmd_add_feed) },
+    { "FileClose", GTK_STOCK_CLOSE, "_Close", "<control>W",
+      NULL, G_CALLBACK(gtk_main_quit) },
+    { "FileQuit", GTK_STOCK_QUIT, "_Quit", "<control>Q",
+      NULL, G_CALLBACK(gtk_main_quit) },
+    { "HelpAbout", GTK_STOCK_ABOUT, "_About", NULL,
+      "About this application", G_CALLBACK(nsp_window_cmd_about) }
 };
 
 NspWindow * 
@@ -84,6 +109,16 @@ nsp_window_destroy (GtkObject *window, NspWindow *win)
 int 
 nsp_window_init(NspWindow *win, GError **error)
 {
+
+	gtk_builder_add_from_string(win->builder, xml, -1, NULL);
+    
+    GtkActionGroup *agroup = GTK_ACTION_GROUP(gtk_builder_get_object(win->builder, "actiongroup"));
+    
+    gtk_action_group_add_actions (agroup,
+                                  action_entries_window,
+                                  G_N_ELEMENTS (action_entries_window),
+                                  NULL);
+	
 	gtk_builder_add_from_file(win->builder, NSP_UI_FILE, error);
 	
     if (error != NULL)
