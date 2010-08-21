@@ -39,6 +39,7 @@ GLIB_REQUIRED=2.20
 CURL_REQUIRED=7.18
 LIBXML_REQUIRED=2.7
 SQLITE_REQUIRED=3.5
+WEBKIT_REQUIRED=1.0
 
 
 NSP_MODULES="gtk+-2.0 >= $GTK_REQUIRED \
@@ -46,7 +47,8 @@ NSP_MODULES="gtk+-2.0 >= $GTK_REQUIRED \
              gio-2.0 >= $GLIB_REQUIRED \
              libcurl >= $CURL_REQUIRED\
              libxml-2.0 >= $LIBXML_REQUIRED\
-             sqlite3 >= $SQLITE_REQUIRED"
+             sqlite3 >= $SQLITE_REQUIRED\
+             webkit-1.0 >= $WEBKIT_REQUIRED"
 
 
 # ****************
