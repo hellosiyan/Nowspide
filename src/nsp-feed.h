@@ -36,12 +36,18 @@ typedef enum {
 	NSP_FEED_ATOM_1_0
 } NspFeedType;
 
+typedef enum {
+	NSP_FEED_ITEM_UNREAD,
+	NSP_FEED_ITEM_READ
+} NspFeedItemStatus;
+
 typedef struct _NspFeedItem NspFeedItem;
 
 struct _NspFeedItem
 {
 	int id;
 	int feed_id;
+	NspFeedItemStatus status;
 	char *title;
 	char *link;
 	char *description;
