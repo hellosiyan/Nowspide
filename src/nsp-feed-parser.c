@@ -33,7 +33,7 @@
 #define ATOM_1_0_URI	"http://www.w3.org/2005/Atom"
 
 static NspFeedType
-nsp_feed_parse_type(xmlNode *node)
+nsp_parse_feed_type(xmlNode *node)
 {
 	if (node->name && node->type == XML_ELEMENT_NODE) {
 		if (strcmp((const char *)node->name, "rss")==0) {
@@ -89,7 +89,7 @@ nsp_feed_parse_type(xmlNode *node)
 }
 
 GList *
-nsp_feed_item_parser_rss (xmlNode *root, GError **error) {
+nsp_parse_items_rss (xmlNode *root, GError **error) {
 	xmlNode *tpm = NULL;
 	xmlNode *item = NULL;
 	xmlNode *prop = NULL;
@@ -140,6 +140,32 @@ nsp_feed_item_parser_rss (xmlNode *root, GError **error) {
 	return items;
 }
 
+static int
+nsp_parse_feed_rss(xmlNode *node, NspFeed *feed)
+{
+	xmlNode *tmp = node->children;
+	
+	while ( tmp != NULL ) {
+		if ( !xmlStrcasecmp(tmp->name, (xmlChar *)"channel") ) {
+			tmp = tmp->children;
+			
+			while ( tmp != NULL ) {
+				if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "title") ) {
+					feed->title = (char *) xmlNodeGetContent(tmp);
+				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "description") ) {
+					feed->description = (char *) xmlNodeGetContent(tmp);
+				}
+				
+				tmp = tmp->next;
+			}
+			
+			break; // parse only one channel per feed
+		}
+		tmp = tmp->next;
+	}
+	return 0;
+}
+
 
 int
 nsp_feed_parse (xmlDoc *xml, NspFeed *feed)
@@ -149,13 +175,16 @@ nsp_feed_parse (xmlDoc *xml, NspFeed *feed)
 	assert(xml != NULL);
 	node = xmlDocGetRootElement(xml);
 
-	feed->type = nsp_feed_parse_type(node);
+	feed->type = nsp_parse_feed_type(node);
 	
 	switch( feed->type ) {
 		case NSP_FEED_RSS_2_0:
 		case NSP_FEED_RSS_1_0:
 		case NSP_FEED_RSS_0_9:
-			feed->items = nsp_feed_item_parser_rss(node, NULL);
+			if ( feed->title == NULL || feed->description == NULL) {
+				nsp_parse_feed_rss(node, feed);
+			}
+			feed->items = nsp_parse_items_rss(node, NULL);
 			break;
 		default:
 			break;

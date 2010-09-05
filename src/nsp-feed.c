@@ -346,7 +346,6 @@ nsp_feed_save_to_db(NspFeed *feed)
 		}
 		
 		query = sqlite3_mprintf("INSERT OR IGNORE INTO nsp_feed_item (id, feed_id, title, url, description, date) VALUES (NULL, %i, '%q', '%q', '%q', %i)", feed->id,tmp->title, tmp->link, tmp->description, date);
-		
 		stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
 		sqlite3_free(query);
 		

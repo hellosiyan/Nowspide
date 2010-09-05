@@ -47,7 +47,7 @@ handle_url(gpointer data, gpointer user_data ) {
 	{
 		xmlDoc *xml_doc =  xmlReadMemory(netdata->content, netdata->size, NULL, NULL, 0);
 		assert(xml_doc != NULL);
-		GList *list = nsp_feed_item_parser_rss(xmlDocGetRootElement(xml_doc), NULL);
+		GList *list = nsp_parse_items_rss(xmlDocGetRootElement(xml_doc), NULL);
 		
 		// Test the generated GList
 		while ( list != NULL ) {
