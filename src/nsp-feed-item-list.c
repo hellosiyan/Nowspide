@@ -75,3 +75,26 @@ nsp_feed_item_list_get_view()
 	return list_view;
 }
 
+
+void 
+nsp_feed_item_list_update_iter(GtkTreeIter iter, GtkTreeStore *store, NspFeedItem *feed_item)
+{
+	char *col_name = NULL, *col_date = NULL;
+		
+	if ( feed_item->status == NSP_FEED_ITEM_UNREAD) {
+		col_name = g_strdup_printf("<b>%s</b>", feed_item->title);
+	} else {
+		col_name = g_strdup_printf("%s", feed_item->title);
+	}
+	
+	col_date = g_strdup_printf("%.2i-%.2i-%.2i %.2i:%.2i", feed_item->pubdate->tm_mday, feed_item->pubdate->tm_mon, feed_item->pubdate->tm_year-100, feed_item->pubdate->tm_hour, feed_item->pubdate->tm_min);
+	
+	gtk_tree_store_set (store, &iter,
+					ITEM_LIST_COL_DATE, col_date,
+					ITEM_LIST_COL_NAME, col_name,
+					ITEM_LIST_COL_ITEM_REF, feed_item,
+					-1);
+
+	g_free(col_name);
+	g_free(col_date);
+}

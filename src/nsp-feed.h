@@ -81,6 +81,7 @@ GList * nsp_feed_load_feeds_from_db();
 GList * nsp_feed_load_feeds_with_items_from_db();
 
 int nsp_feed_save_to_db(NspFeed *feed);
+int nsp_feed_item_save_to_db(NspFeedItem *feed_item);
 
 int nsp_feed_update_items(NspFeed *feed);
 void nsp_feed_update_model(NspFeed *feed);

@@ -32,6 +32,9 @@ struct _NspApp {
 	NspWindow *window;
 	NspDb *db;
 	NspJobs *jobs;
+	
+	NspFeed *current_feed;
+	NspFeedItem *current_feed_item;
 };
 
 NspApp *nsp_app_get();

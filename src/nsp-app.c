@@ -26,6 +26,34 @@
 
 static NspApp *_app = NULL;
 
+static void
+nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
+{
+	NspApp *app = nsp_app_get();
+	GtkTreeIter iter, child_iter;
+	GtkTreeModel *model;
+	NspFeedItem *feed_item = NULL;
+	
+	if ( gtk_tree_selection_get_selected(selection, &model, &iter) ) {
+		gtk_tree_model_get(model, &iter, ITEM_LIST_COL_ITEM_REF, &feed_item, -1);
+	}
+	app->current_feed_item = feed_item;
+	
+	if ( feed_item == NULL ) {
+		return;
+	}
+	
+	gtk_tree_model_sort_convert_iter_to_child_iter(GTK_TREE_MODEL_SORT(app->current_feed->items_sorter), &child_iter, &iter);
+	
+	if ( feed_item->status == NSP_FEED_ITEM_UNREAD ) {
+		feed_item->status = NSP_FEED_ITEM_READ;
+		nsp_feed_item_save_to_db(feed_item);
+		nsp_feed_item_list_update_iter(child_iter, app->current_feed->items_store, feed_item);
+	}
+	
+	return;
+}
+
 static void 
 nsp_app_feed_update_real (void* user_data)
 {
@@ -71,6 +99,9 @@ nsp_app_feed_list_select (void* user_data)
 	NspApp *app = nsp_app_get();
 	NspFeed *feed = (NspFeed*) user_data;
 	
+	app->current_feed = feed;
+	app->current_feed_item = NULL;
+	
 	gtk_tree_view_set_model(GTK_TREE_VIEW(app->window->feed_item_list), nsp_feed_get_items_model(feed));
 }
 
@@ -92,6 +123,15 @@ nsp_app_feed_add (void* user_data)
 	}
 }
 
+static void 
+nsp_app_window_init(NspApp *app)
+{
+	GtkTreeSelection *selection;
+	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(app->window->feed_item_list));
+	
+	g_signal_connect(selection, "changed", G_CALLBACK(nsp_app_feed_item_list_sel), NULL);	
+}
+
 
 static NspApp *
 nsp_app_new ()
@@ -102,6 +142,8 @@ nsp_app_new ()
 	assert(app != NULL);
 	
 	app->feeds = NULL;
+	app->current_feed = NULL;
+	app->current_feed_item = NULL;
 	
 	app->db = nsp_db_get();
 	
@@ -109,6 +151,7 @@ nsp_app_new ()
 	
 	app->window = nsp_window_new();
 	nsp_window_init(app->window, NULL);
+	nsp_app_window_init(app);
 	
 	app->window->on_feed_add = nsp_app_feed_add;
 	app->window->on_feed_update = nsp_app_feed_update;

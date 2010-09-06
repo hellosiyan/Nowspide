@@ -93,6 +93,8 @@ nsp_parse_items_rss (xmlNode *root, GError **error) {
 	xmlNode *tpm = NULL;
 	xmlNode *item = NULL;
 	xmlNode *prop = NULL;
+	time_t date;
+	
 	
 	GList *items = NULL;
 	
@@ -124,6 +126,8 @@ nsp_parse_items_rss (xmlNode *root, GError **error) {
 							feed_item->pubdate->tm_zone = NULL;
 						}
 						strptime((const char*) xmlNodeGetContent(prop), "%a, %d %b %Y %H:%M:%S %z", feed_item->pubdate);
+						date = timegm(feed_item->pubdate);
+						memcpy( feed_item->pubdate, localtime(&date), sizeof(struct tm));
 					}
 					prop = prop->next;
 				}
