@@ -47,7 +47,7 @@ nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
 	
 	if ( feed_item->status == NSP_FEED_ITEM_UNREAD ) {
 		feed_item->status = NSP_FEED_ITEM_READ;
-		nsp_feed_item_save_to_db(feed_item);
+		nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_feed_item_save_to_db, (void*)feed_item));
 		nsp_feed_item_list_update_iter(child_iter, app->current_feed->items_store, feed_item);
 	}
 	
