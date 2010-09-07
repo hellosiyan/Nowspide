@@ -37,6 +37,7 @@ nsp_db_new()
 	
 	nsp_db->db = NULL;
 	nsp_db->transaction_started = 0;
+	nsp_db->mutex = g_mutex_new();
 	
 	return nsp_db;
 }
@@ -64,7 +65,7 @@ nsp_db_create()
 	stat = sqlite3_exec(db_file," \
 		BEGIN TRANSACTION; \
 			CREATE TABLE nsp_feed ( id INTEGER PRIMARY KEY, title TEXT, url TEXT UNIQUE, description TEXT); \
-			CREATE TABLE nsp_feed_item ( id INTEGER PRIMARY KEY, feed_id INTEGER, title TEXT, url TEXT,description TEXT, date INTEGER, UNIQUE (feed_id, url)); \
+			CREATE TABLE nsp_feed_item ( id INTEGER PRIMARY KEY, feed_id INTEGER, title TEXT, url TEXT,description TEXT, date INTEGER, status INTEGER, UNIQUE (feed_id, url)); \
 		COMMIT; \
 		",
 		NULL, NULL, &error
@@ -119,8 +120,11 @@ nsp_db_transaction_begin(NspDb *nsp_db)
 {
 	char *error = NULL;
 	
+	g_mutex_lock(nsp_db->mutex);
 	nsp_db->transaction_started ++;
+	
 	if ( nsp_db->transaction_started != 1 ) {
+		g_mutex_unlock(nsp_db->mutex);
 		return;
 	}
 	
@@ -132,14 +136,19 @@ nsp_db_transaction_begin(NspDb *nsp_db)
 	} else {
 		nsp_db->transaction_started = 1;
 	}
+	
+	g_mutex_unlock(nsp_db->mutex);
 }
 void
 nsp_db_transaction_end(NspDb *nsp_db)
 {
 	char *error = NULL;
 	
+	g_mutex_lock(nsp_db->mutex);
 	nsp_db->transaction_started --;
+	
 	if ( !nsp_db->transaction_started != 1 ) {
+		g_mutex_unlock(nsp_db->mutex);
 		return;
 	}
 	
@@ -148,7 +157,9 @@ nsp_db_transaction_end(NspDb *nsp_db)
 		g_warning("Error: %s\n", error);
 		sqlite3_free(error);
 	}
+	
 	nsp_db->transaction_started = 0;
+	g_mutex_unlock(nsp_db->mutex);
 }
 
 

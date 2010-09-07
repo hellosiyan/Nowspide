@@ -33,16 +33,6 @@ nsp_feed_list_renderer_text()
 	return renderer;
 }
 
-static GtkCellRenderer *
-nsp_feed_list_renderer_pixbuf()
-{	
-	GtkCellRenderer *renderer = gtk_cell_renderer_pixbuf_new();
-	
-	g_object_set(renderer, "stock-size", GTK_ICON_SIZE_BUTTON, NULL);
-	
-	return renderer;
-}
-
 static gboolean
 nsp_feed_list_sel (GtkTreeSelection *selection, gpointer user_data)
 {
@@ -55,7 +45,7 @@ nsp_feed_list_sel (GtkTreeSelection *selection, gpointer user_data)
 		gtk_tree_model_get(model, &iter, LIST_COL_FEED_REF, &feed, -1);
 	}
 	
-	if ( list->on_select != NULL ) {
+	if ( list->on_select != NULL && feed != NULL ) {
 		list->on_select(feed);
 	}
 	
@@ -75,14 +65,11 @@ nsp_feed_list_new()
 	GtkCellRenderer *renderer = nsp_feed_list_renderer_text();
 	
 	
-	list->list_model = (GtkTreeModel *)gtk_tree_store_new(LIST_COL_NUM, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_POINTER);
+	list->list_model = (GtkTreeModel *)gtk_tree_store_new(LIST_COL_NUM, G_TYPE_STRING, G_TYPE_POINTER);
 	
 	list->list_view = gtk_tree_view_new();
 	gtk_tree_view_set_rules_hint (GTK_TREE_VIEW(list->list_view), TRUE);
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(list->list_view), FALSE);
-	
-	// Icon column
-	gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(list->list_view), -1, "Icon", nsp_feed_list_renderer_pixbuf(), "stock-id", LIST_COL_FAVICO, NULL);
 	
 	// Name columns
 	column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "markup", LIST_COL_NAME, NULL);
@@ -114,7 +101,6 @@ nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
 	
 	gtk_tree_store_append (GTK_TREE_STORE(list->list_model), &iter, NULL);
 	gtk_tree_store_set (GTK_TREE_STORE(list->list_model), &iter,
-					LIST_COL_FAVICO, GTK_STOCK_INFO,
 					LIST_COL_NAME, col_name,
 					LIST_COL_FEED_REF, feed,
 					-1);

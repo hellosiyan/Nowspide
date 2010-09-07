@@ -17,6 +17,7 @@
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
  
+#include <gtk/gtk.h>
 #include <sqlite3.h>
 #include "nsp-feed.h"
 
@@ -28,6 +29,7 @@ typedef struct _NspDb NspDb;
 struct _NspDb {
 	sqlite3 *db;
 	int transaction_started;
+	GMutex *mutex;
 };
 
 
