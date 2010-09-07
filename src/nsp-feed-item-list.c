@@ -64,6 +64,7 @@ nsp_feed_item_list_get_view()
 	
 	renderer = gtk_cell_renderer_text_new();
 	g_object_set(renderer, "ellipsize", PANGO_ELLIPSIZE_END, "width-chars", -1, "wrap-mode", PANGO_WRAP_WORD, NULL);
+	gtk_cell_renderer_text_set_fixed_height_from_font(GTK_CELL_RENDERER_TEXT(renderer), 1);
 	
 	column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "markup", ITEM_LIST_COL_NAME, NULL);
 	gtk_tree_view_insert_column (GTK_TREE_VIEW(list_view), column, -1);
