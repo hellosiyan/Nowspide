@@ -42,5 +42,7 @@ struct _NspFeedList {
 NspFeedList * nsp_feed_list_new();
 
 void nsp_feed_list_add(NspFeedList *list, NspFeed *feed);
+void nsp_feed_item_list_update_feed(NspFeedList *list, NspFeed *feed);
+gboolean nsp_feed_list_search(NspFeedList *list, NspFeed *feed, GtkTreeIter *it);
 
 #endif /* __NSP_FEED_LIST_VIEW_H__ */
