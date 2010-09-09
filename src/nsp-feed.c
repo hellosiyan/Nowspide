@@ -124,6 +124,7 @@ nsp_feed_new()
 	feed->items = NULL;
 	feed->title = feed->url = feed->description = NULL;
 	feed->id = 0;
+	feed->unread_items = 0;
 	feed->items_store = nsp_feed_item_list_get_model();
 	feed->items_sorter = gtk_tree_model_sort_new_with_model(GTK_TREE_MODEL(feed->items_store));
 	
@@ -214,7 +215,8 @@ nsp_feed_update_items(NspFeed *feed)
 }
 
 void
-nsp_feed_update_model(NspFeed *feed) {
+nsp_feed_update_model(NspFeed *feed) 
+{
 	GtkTreeIter iter;
 	NspFeedItem *item;
 	GList *items = feed->items;
@@ -228,6 +230,33 @@ nsp_feed_update_model(NspFeed *feed) {
 		
 		items = items->next;
 	}
+}
+
+void
+nsp_feed_update_unread_count(NspFeed *feed) 
+{
+	NspDb *db = nsp_db_get();
+	char *error = NULL;
+	int stat;
+	int count;
+	
+	char *query = sqlite3_mprintf("SELECT COUNT(1) FROM nsp_feed f LEFT JOIN nsp_feed_item fi ON fi.feed_id = f.id WHERE f.id = %i AND fi.status = 0", feed->id);
+	
+	stat = sqlite3_exec(db->db, query, nsp_db_atom_int, &count, &error);
+	sqlite3_free(query);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+		
+		return;
+	}
+	
+	feed->unread_items = count;
 }
 
 int
@@ -254,6 +283,8 @@ nsp_feed_load_items_from_db(NspFeed *feed)
 		
 		return 1;
 	}
+	
+	nsp_feed_update_unread_count(feed);
 	
 	return 0;
 }

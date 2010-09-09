@@ -144,8 +144,12 @@ nsp_feed_item_list_update_feed(NspFeedList *list, NspFeed *feed)
 	if( !nsp_feed_list_search(list, feed, &iter) ) {
 		return;
 	}
-		
-	col_name = g_strdup_printf("%s <b>(12)</b>\n<small>%s</small>", feed->title, feed->description);
+	
+	if ( feed->unread_items > 0 ) {
+		col_name = g_strdup_printf("<b>%s (%i)</b>\n<small>%s</small>", feed->title, feed->unread_items, feed->description);
+	} else {
+		col_name = g_strdup_printf("%s\n<small>%s</small>", feed->title, feed->description);
+	}
 	
 	
 	gtk_tree_store_set (GTK_TREE_STORE(list->list_model), &iter,

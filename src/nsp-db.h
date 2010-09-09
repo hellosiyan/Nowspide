@@ -39,4 +39,6 @@ void	nsp_db_close();
 void	nsp_db_transaction_begin(NspDb *nsp_db);
 void	nsp_db_transaction_end(NspDb *nsp_db);
 
+int		nsp_db_atom_int(void *user_data, int argc, char **argv, char ** azColName);
+
 #endif /* __NSP_DB_H__ */
