@@ -96,7 +96,7 @@ nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
 	GtkTreeIter iter;
 	char *col_name = NULL;
 	
-	col_name = g_strdup_printf("%s\n<span color='#666666'><small>%s</small></span>", feed->title, feed->description);
+	col_name = g_strdup_printf("%s\n<small>%s</small>", feed->title, feed->description);
 	
 	
 	gtk_tree_store_append (GTK_TREE_STORE(list->list_model), &iter, NULL);
