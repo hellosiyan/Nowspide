@@ -79,7 +79,7 @@ nsp_feed_sort_date (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointe
 	gtk_tree_model_get(model, b, ITEM_LIST_COL_ITEM_REF, &item_b, -1);
 	
 	if ( item_a == NULL || item_b == NULL || item_a->pubdate == NULL || item_b->pubdate == NULL) {
-		return 1;
+		return 0;
 	}
 	t_a = mktime(item_a->pubdate);
 	t_b = mktime(item_b->pubdate);
