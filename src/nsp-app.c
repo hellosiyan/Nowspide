@@ -97,7 +97,7 @@ nsp_app_load_feeds(NspApp *app)
 static void
 nsp_app_window_show(NspApp *app)
 {
-	gtk_widget_show_all(app->window->window);
+	gtk_widget_show(app->window->window);
 }
 
 static void
@@ -105,11 +105,15 @@ nsp_app_feed_list_select (void* user_data)
 {
 	NspApp *app = nsp_app_get();
 	NspFeed *feed = (NspFeed*) user_data;
+	GtkWidget *feed_item_header;
 	
 	app->current_feed = feed;
 	app->current_feed_item = NULL;
 	
 	gtk_tree_view_set_model(GTK_TREE_VIEW(app->window->feed_item_list), nsp_feed_get_items_model(feed));
+	
+	feed_item_header = GTK_WIDGET(gtk_builder_get_object(app->window->builder, "feed_item_list_header"));
+	gtk_label_set_text(GTK_LABEL(feed_item_header), feed->title);
 }
 
 static void

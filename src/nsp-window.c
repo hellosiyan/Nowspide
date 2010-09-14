@@ -142,6 +142,11 @@ nsp_window_init(NspWindow *win, GError **error)
 	g_signal_connect(gtk_builder_get_object(win->builder, "btn_feed_add"), "clicked", G_CALLBACK(nsp_window_cmd_add_feed), win);
 	g_signal_connect(gtk_builder_get_object(win->builder, "btn_update"), "clicked", G_CALLBACK(nsp_window_cmd_update_feed), win);
 	
+	/* Show/hide specific widgets */
+	gtk_widget_show(win->feed_list->list_view);
+	gtk_widget_show(win->feed_item_list);
+	gtk_widget_hide(GTK_WIDGET (gtk_builder_get_object (win->builder, "btn_index_view")));
+	
 	return 0;
 }
 
