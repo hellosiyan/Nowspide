@@ -51,7 +51,7 @@ nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
 		nsp_feed_item_list_update_iter(child_iter, app->current_feed->items_store, feed_item);
 		
 		app->current_feed->unread_items --;
-		nsp_feed_item_list_update_feed(app->window->feed_list,  app->current_feed);
+		nsp_feed_list_update_entry(app->window->feed_list,  app->current_feed);
 	}
 	
 	return;
@@ -66,7 +66,7 @@ nsp_app_feed_update_real (void* user_data)
 	
 	GDK_THREADS_ENTER();
 	nsp_feed_update_model((NspFeed*)user_data);
-	nsp_feed_item_list_update_feed(app->window->feed_list, (NspFeed*)user_data);
+	nsp_feed_list_update_entry(app->window->feed_list, (NspFeed*)user_data);
 	GDK_THREADS_LEAVE();
 }
 
@@ -76,6 +76,20 @@ nsp_app_feed_update(void* user_data)
 	NspApp *app = nsp_app_get();
 	nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_app_feed_update_real, user_data));
 }
+
+static void 
+nsp_app_feed_item_delete(void* user_data)
+{
+	NspApp *app = nsp_app_get();
+	NspFeedItem *feed_item = (NspFeedItem*)user_data;
+	gboolean foo; /* required by g_signal_emit_by_name */
+	
+	gtk_widget_grab_focus (GTK_WIDGET (app->window->feed_item_list));
+	g_signal_emit_by_name (GTK_TREE_VIEW(app->window->feed_item_list), "move-cursor", GTK_MOVEMENT_DISPLAY_LINES, 1, &foo);
+		
+	nsp_feed_delete_item(app->current_feed, feed_item);
+}
+
 
 static void
 nsp_app_load_feeds(NspApp *app)
@@ -167,6 +181,7 @@ nsp_app_new ()
 	
 	app->window->on_feed_add = nsp_app_feed_add;
 	app->window->on_feed_update = nsp_app_feed_update;
+	app->window->on_feed_item_delete = nsp_app_feed_item_delete;
 	app->window->feed_list->on_select = nsp_app_feed_list_select;
 	
 	nsp_app_window_show(app);

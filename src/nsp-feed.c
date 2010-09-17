@@ -444,3 +444,64 @@ nsp_feed_save_to_db(NspFeed *feed)
 	
 }
 
+
+int 
+nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item)
+{	
+	NspDb *db = nsp_db_get();
+	NspFeedItem *tmp_feed_item = NULL;
+	GtkTreeIter iter;
+	gboolean valid;
+	char *query = NULL;
+	char *error = NULL;
+	int stat;
+	
+	assert(feed != NULL && feed_item != NULL);
+	
+	if ( feed_item->id == 0 ) {
+		return 1;
+	}
+	
+	query = sqlite3_mprintf(
+			"DELETE FROM nsp_feed_item WHERE id = %i", 
+			feed_item->id
+		);
+	
+	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
+	sqlite3_free(query);
+	
+	nsp_db_transaction_end(db);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+
+		return 1;
+	}
+	
+	valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(feed->items_store), &iter);
+	while (valid)
+	{
+		gtk_tree_model_get (GTK_TREE_MODEL(feed->items_store), &iter,
+				ITEM_LIST_COL_ITEM_REF, &tmp_feed_item,
+				-1
+			);
+		
+		if ( tmp_feed_item != NULL && tmp_feed_item == feed_item ) {
+			break;
+		}
+		
+		valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(feed->items_store), &iter);
+	}
+	
+	if ( valid ) {
+		gtk_tree_store_remove(feed->items_store, &iter);
+	}
+	
+	return 0;
+}
+

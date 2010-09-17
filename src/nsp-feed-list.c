@@ -101,7 +101,7 @@ nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
 					LIST_COL_FEED_REF, feed,
 					-1);
 					
-	nsp_feed_item_list_update_feed(list, feed);
+	nsp_feed_list_update_entry(list, feed);
 }
 
 gboolean
@@ -136,7 +136,7 @@ nsp_feed_list_search(NspFeedList *list, NspFeed *feed, GtkTreeIter *it)
 
 
 void 
-nsp_feed_item_list_update_feed(NspFeedList *list, NspFeed *feed)
+nsp_feed_list_update_entry(NspFeedList *list, NspFeed *feed)
 {
 	GtkTreeIter iter;
 	char *col_name = NULL;
@@ -159,4 +159,3 @@ nsp_feed_item_list_update_feed(NspFeedList *list, NspFeed *feed)
 	
 	g_free(col_name);
 }
-
