@@ -74,18 +74,6 @@ const char *xml_main_menu =
 	"</ui>"
 "</object></interface>";
 
-
-const gchar* form_markup =
-  "<body style=\"background-color:#EF8E3A;\"><form>"
-  "Name <b>(required)</b><br>"
-  "<input type=\"text\" onkeyup=\"setCanRegister (this.value != '')\"><br>"
-  "Favourite animal<br>"
-  "<input type=\"text\" style=\"color: #000; background-color:#A9F796;\"><br>"
-  "Favourite colour:<br>"
-  "<object type=\"application/x-gtk-color-button\" "
-  "style=\"height: 2em; width: 10em;\"></object><br>"
-  "</form></body>";
-
 const char *xml_feed_item_menu = 
 "<?xml version=\"1.0\"?><interface> <requires lib=\"gtk+\" version=\"2.16\"/>"
 	"<object class=\"GtkMenu\" id=\"feed_item_menu\" constructor=\"uiman\" />"
@@ -149,8 +137,6 @@ nsp_window_destroy (GtkObject *window, NspWindow *win)
 int 
 nsp_window_init(NspWindow *win, GError **error)
 {
-	GtkWidget* web_view;
-	
 	gtk_builder_add_from_string(win->builder, xml_main_menu, -1, NULL);
     
     GtkActionGroup *agroup = GTK_ACTION_GROUP(gtk_builder_get_object(win->builder, "actiongroup"));
@@ -182,19 +168,17 @@ nsp_window_init(NspWindow *win, GError **error)
 	win->window = GTK_WIDGET (gtk_builder_get_object (win->builder, "main_window"));
 	
 	gtk_window_set_position(GTK_WINDOW(win->window), GTK_WIN_POS_CENTER);
-	gtk_window_set_default_size(GTK_WINDOW(win->window), 700, 400);
+	gtk_window_set_default_size(GTK_WINDOW(win->window), 900, 500);
 	g_signal_connect(win->window, "destroy", G_CALLBACK(nsp_window_destroy), NULL);
-	/*
+	
 	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "scroll_win")), win->feed_list->list_view);
 	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "feed_item_list_win")), win->feed_item_list);
 	
 	gtk_widget_set_size_request(GTK_WIDGET (gtk_builder_get_object (win->builder, "scroll_win")), 200, -1);
-	*/
 	
-	web_view = webkit_web_view_new ();
-	//webkit_web_view_load_string (WEBKIT_WEB_VIEW (web_view), form_markup, "text/html", "UTF-8", "");
-	//webkit_web_view_load_uri(WEBKIT_WEB_VIEW (web_view), "http://youtube.com");
-	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "feed_item_list_win")), web_view);
+	
+	win->web_view = webkit_web_view_new ();
+	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "feed_item_view")), win->web_view);
 	
 	/* Connect signals */
 	g_signal_connect(gtk_builder_get_object(win->builder, "btn_feed_add"), "clicked", G_CALLBACK(nsp_window_cmd_add_feed), win);
@@ -204,6 +188,7 @@ nsp_window_init(NspWindow *win, GError **error)
 	/* Show/hide specific widgets */
 	gtk_widget_show(win->feed_list->list_view);
 	gtk_widget_show(win->feed_item_list);
+	gtk_widget_show(win->web_view);
 	gtk_widget_hide(GTK_WIDGET (gtk_builder_get_object (win->builder, "btn_index_view")));
 	
 	return 0;

@@ -35,6 +35,7 @@ struct _NspWindow
 	NspFeedList *feed_list;
 	GtkWidget *feed_item_list;
     GtkWidget *feed_item_menu;
+	GtkWidget* web_view;
 	
 	NspCallback *on_feed_update;
 	NspCallback *on_feed_add;

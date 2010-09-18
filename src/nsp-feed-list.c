@@ -151,7 +151,6 @@ nsp_feed_list_update_entry(NspFeedList *list, NspFeed *feed)
 		col_name = g_strdup_printf("%s\n<small>%s</small>", feed->title, feed->description);
 	}
 	
-	
 	gtk_tree_store_set (GTK_TREE_STORE(list->list_model), &iter,
 					LIST_COL_NAME, col_name,
 					LIST_COL_FEED_REF, feed,

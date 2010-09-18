@@ -24,6 +24,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <webkit/webkit.h>
+#include <JavaScriptCore/JavaScript.h>
+
 static NspApp *_app = NULL;
 
 static void
@@ -53,6 +56,8 @@ nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
 		app->current_feed->unread_items --;
 		nsp_feed_list_update_entry(app->window->feed_list,  app->current_feed);
 	}
+	//webkit_web_view_load_uri(WEBKIT_WEB_VIEW (app->window->web_view), feed_item->link);
+	webkit_web_view_load_string (WEBKIT_WEB_VIEW (app->window->web_view), feed_item->description, "text/html", "UTF-8", "");
 	
 	return;
 }
