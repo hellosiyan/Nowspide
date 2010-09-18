@@ -39,7 +39,7 @@ nsp_feed_load_feed_items_callback(void *user_data, int argc, char **argv, char *
 	feed_item->status = atoi(argv[6]);
 	feed_item->title = g_strdup(argv[2]);
 	feed_item->link = g_strdup(argv[3]);
-	feed_item->description = g_strdup(argv[6]);
+	feed_item->description = g_strdup(argv[4]);
 	time_t time = (time_t)atol(argv[5]);
 	
 	feed_item->pubdate = malloc(sizeof(struct tm));

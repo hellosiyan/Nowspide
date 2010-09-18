@@ -117,7 +117,9 @@ nsp_parse_items_rss (xmlNode *root, GError **error) {
 						feed_item->title = (char*) xmlNodeGetContent(prop);
 					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"link") ) {
 						feed_item->link = (char*) xmlNodeGetContent(prop);
-					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"description") ) {
+					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"description") && feed_item->description == NULL ) {
+						feed_item->description = (char*) xmlNodeGetContent(prop);
+					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"encoded") ) {
 						feed_item->description = (char*) xmlNodeGetContent(prop);
 					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"pubdate") ) {
 						if ( feed_item->pubdate == NULL ) {
