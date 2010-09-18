@@ -17,10 +17,9 @@
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <libxml/parser.h>
-#include <libxml/tree.h>
 #include <gtk/gtk.h>
-#include <time.h>
+#include <libxml/tree.h>
+#include <libxml/parser.h>
 
 #include "nsp-feed.h"
 

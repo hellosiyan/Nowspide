@@ -21,6 +21,7 @@
 #define __NSP_FEED_LIST_H__ 1
 
 #include <gtk/gtk.h>
+
 #include "nsp-feed.h"
 
 enum

@@ -17,15 +17,7 @@
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sqlite3.h>
-#include <glib.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <fcntl.h>
-#include "config.h"
 #include "nsp-db.h"
-#include "nsp-feed.h"
 
 static NspDb *db = NULL;
 

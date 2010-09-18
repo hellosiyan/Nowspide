@@ -19,14 +19,11 @@
 
 #include "nsp-feed.h"
 #include "nsp-feed-parser.h"
-#include "nsp-db.h"
-#include "nsp-net.h"
-#include "nsp-feed-item-list.h"
 #include "nsp-feed-list.h"
-#include <assert.h>
-#include <stdlib.h>
-#include <time.h>
+#include "nsp-feed-item-list.h"
 
+#include <libxml/tree.h>
+#include <libxml/parser.h>
 
 static int 
 nsp_feed_load_feed_items_callback(void *user_data, int argc, char **argv, char ** azColName)
@@ -85,33 +82,6 @@ nsp_feed_sort_date (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointe
 	t_b = mktime(item_b->pubdate);
 	
 	return t_a - t_b;
-}
-
-NspFeedItem *
-nsp_feed_item_new()
-{
-	NspFeedItem * item = malloc(sizeof(NspFeedItem));
-	assert(item != NULL);
-	
-	item->id = item->feed_id = 0;
-	item->status = NSP_FEED_ITEM_UNREAD;
-	item->title = item->link = item->description = NULL;
-	item->pubdate = NULL;
-	
-	return item;
-}
-
-void
-nsp_feed_item_free(NspFeedItem * item)
-{
-	if ( item == NULL) {
-		return;
-	}
-	
-	free(item->title);
-	free(item->link);
-	free(item->description);
-	free(item->pubdate);
 }
 
 NspFeed * 
@@ -327,68 +297,6 @@ nsp_feed_load_feeds_with_items_from_db()
 	}
 	
 	return feeds;
-}
-
-int
-nsp_feed_item_save_to_db(NspFeedItem *feed_item) 
-{
-	NspDb *db = nsp_db_get();
-	char *query = NULL;
-	char *error = NULL;
-	int stat;
-	
-	
-	time_t date = 0;
-	if ( feed_item->pubdate ) {
-		date = mktime(feed_item->pubdate);
-	}
-	
-	nsp_db_transaction_begin(db);
-	
-	if ( feed_item->id != 0 ) {
-		query = sqlite3_mprintf(
-				"UPDATE nsp_feed_item SET title = '%q', url = '%q', description = '%q', date = %i, status = %i WHERE id = %i", 
-				feed_item->title, 
-				feed_item->link, 
-				feed_item->description, 
-				date, 
-				feed_item->status, 
-				feed_item->id
-			);
-	} else {
-		assert(feed_item->feed_id != 0);
-		query = sqlite3_mprintf(
-				"INSERT OR IGNORE INTO nsp_feed_item (id, feed_id, title, url, description, date, status) VALUES (NULL, %i, '%q', '%q', '%q', %i, %i)", 
-				feed_item->feed_id, 
-				feed_item->title, 
-				feed_item->link, 
-				feed_item->description, 
-				date, 
-				feed_item->status
-			);
-	}
-	
-	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
-	sqlite3_free(query);
-	
-	nsp_db_transaction_end(db);
-	
-	if ( stat != SQLITE_OK ) {
-		if ( error == NULL) {
-			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
-		} else {
-			g_warning("Error: %s\n", error);
-			sqlite3_free(error);
-		}
-
-		return 1;
-	}
-	
-	if ( feed_item->id == 0 ) {
-		feed_item->id = sqlite3_last_insert_rowid(db->db);
-	}
-	
-	return 0;
 }
 
 int

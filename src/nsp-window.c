@@ -17,9 +17,9 @@
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
  
-#include "config.h"
 #include "nsp-window.h"
-#include "nsp-feed-list.h"
+
+#include "config.h"
 #include "nsp-jobs.h"
 #include "nsp-app.h"
 #include <assert.h>

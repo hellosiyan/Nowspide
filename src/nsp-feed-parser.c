@@ -19,15 +19,11 @@
 
 #define _GNU_SOURCE 1
 
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <gtk/gtk.h>
+#include "nsp-feed-parser.h"
+
 #include <assert.h>
 #include <string.h>
 #include <time.h>
-
-#include "nsp-feed-parser.h"
-#include "nsp-feed.h"
 
 #define ATOM_0_3_URI	"http://purl.org/atom/ns#"
 #define ATOM_1_0_URI	"http://www.w3.org/2005/Atom"

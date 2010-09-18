@@ -20,8 +20,9 @@
 #ifndef __NSP_FEED_ITEM_LIST_H__
 #define __NSP_FEED_ITEM_LIST_H__ 1
 
-#include "nsp-feed.h"
 #include <gtk/gtk.h>
+
+#include "nsp-feed.h"
 
 enum
 {

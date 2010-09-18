@@ -22,6 +22,7 @@
 #define __NSP_WINDOW_H_ 1
 
 #include <gtk/gtk.h>
+
 #include "nsp-typedefs.h"
 #include "nsp-feed-list.h"
 #include "nsp-feed-item-list.h"

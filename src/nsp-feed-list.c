@@ -21,7 +21,6 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <gtk/gtk.h>
 
 static GtkCellRenderer *
 nsp_feed_list_renderer_text()

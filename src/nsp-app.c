@@ -18,11 +18,6 @@
  */
  
 #include "nsp-app.h"
-#include "nsp-window.h"
-#include "nsp-feed.h"
-
-#include <stdlib.h>
-#include <assert.h>
 
 static NspApp *_app = NULL;
 

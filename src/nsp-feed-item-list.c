@@ -19,7 +19,6 @@
  
 #include "nsp-feed-item-list.h"
 
-#include <gtk/gtk.h>
 #include <assert.h>
 
 NspFeedItemList *

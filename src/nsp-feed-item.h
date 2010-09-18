@@ -16,36 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <fcntl.h>
-#include <sqlite3.h>
-#include <glib.h>
-#include <gtk/gtk.h>
 
-#include "nsp-feed.h"
-#include "config.h"
 
-#ifndef __NSP_DB_H__
-#define __NSP_DB_H__ 1
+#ifndef __NSP_FEED_ITEM_H_
+#define __NSP_FEED_ITEM_H_ 1
 
-typedef struct _NspDb NspDb;
+#include <time.h>
 
-struct _NspDb {
-	sqlite3 *db;
-	int transaction_started;
-	GMutex *mutex;
+#include "nsp-typedefs.h"
+
+typedef enum {
+	NSP_FEED_ITEM_UNREAD,
+	NSP_FEED_ITEM_READ
+} NspFeedItemStatus;
+
+typedef struct _NspFeedItem NspFeedItem;
+
+struct _NspFeedItem
+{
+	int id;
+	int feed_id;
+	NspFeedItemStatus status;
+	char *title;
+	char *link;
+	char *description;
+	struct tm *pubdate;
 };
 
+NspFeedItem	* nsp_feed_item_new();
+void nsp_feed_item_free(NspFeedItem *item);
 
-NspDb * nsp_db_get();
-void	nsp_db_close();
+int nsp_feed_item_save_to_db(NspFeedItem *feed_item);
 
-void	nsp_db_transaction_begin(NspDb *nsp_db);
-void	nsp_db_transaction_end(NspDb *nsp_db);
-
-int		nsp_db_atom_int(void *user_data, int argc, char **argv, char ** azColName);
-
-#endif /* __NSP_DB_H__ */
+#endif /* __NSP_FEED_ITEM_H_ */

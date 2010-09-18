@@ -20,10 +20,15 @@
 #ifndef __NSP_APP_H__
 #define __NSP_APP_H__ 1
 
+#include <stdlib.h>
+#include <assert.h>
 #include <gtk/gtk.h>
-#include "nsp-window.h"
+
 #include "nsp-db.h"
 #include "nsp-jobs.h"
+#include "nsp-feed.h"
+#include "nsp-feed-item.h"
+#include "nsp-window.h"
 
 typedef struct _NspApp NspApp;
 

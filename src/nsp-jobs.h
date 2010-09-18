@@ -22,6 +22,7 @@
 #define __NSP_JOBS_H__ 1
 
 #include <gtk/gtk.h>
+
 #include "nsp-typedefs.h"
 
 typedef struct _NspJob NspJob;
