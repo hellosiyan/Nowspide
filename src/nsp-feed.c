@@ -39,7 +39,7 @@ nsp_feed_load_feed_items_callback(void *user_data, int argc, char **argv, char *
 	feed_item->status = atoi(argv[6]);
 	feed_item->title = g_strdup(argv[2]);
 	feed_item->link = g_strdup(argv[3]);
-	feed_item->description = g_strdup(argv[6]);
+	feed_item->description = g_strdup(argv[4]);
 	time_t time = (time_t)atol(argv[5]);
 	
 	feed_item->pubdate = malloc(sizeof(struct tm));
@@ -79,7 +79,7 @@ nsp_feed_sort_date (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointe
 	gtk_tree_model_get(model, b, ITEM_LIST_COL_ITEM_REF, &item_b, -1);
 	
 	if ( item_a == NULL || item_b == NULL || item_a->pubdate == NULL || item_b->pubdate == NULL) {
-		return 1;
+		return 0;
 	}
 	t_a = mktime(item_a->pubdate);
 	t_b = mktime(item_b->pubdate);
@@ -124,6 +124,7 @@ nsp_feed_new()
 	feed->items = NULL;
 	feed->title = feed->url = feed->description = NULL;
 	feed->id = 0;
+	feed->unread_items = 0;
 	feed->items_store = nsp_feed_item_list_get_model();
 	feed->items_sorter = gtk_tree_model_sort_new_with_model(GTK_TREE_MODEL(feed->items_store));
 	
@@ -214,7 +215,8 @@ nsp_feed_update_items(NspFeed *feed)
 }
 
 void
-nsp_feed_update_model(NspFeed *feed) {
+nsp_feed_update_model(NspFeed *feed) 
+{
 	GtkTreeIter iter;
 	NspFeedItem *item;
 	GList *items = feed->items;
@@ -228,6 +230,33 @@ nsp_feed_update_model(NspFeed *feed) {
 		
 		items = items->next;
 	}
+}
+
+void
+nsp_feed_update_unread_count(NspFeed *feed) 
+{
+	NspDb *db = nsp_db_get();
+	char *error = NULL;
+	int stat;
+	int count;
+	
+	char *query = sqlite3_mprintf("SELECT COUNT(1) FROM nsp_feed f LEFT JOIN nsp_feed_item fi ON fi.feed_id = f.id WHERE f.id = %i AND fi.status = 0", feed->id);
+	
+	stat = sqlite3_exec(db->db, query, nsp_db_atom_int, &count, &error);
+	sqlite3_free(query);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+		
+		return;
+	}
+	
+	feed->unread_items = count;
 }
 
 int
@@ -254,6 +283,8 @@ nsp_feed_load_items_from_db(NspFeed *feed)
 		
 		return 1;
 	}
+	
+	nsp_feed_update_unread_count(feed);
 	
 	return 0;
 }
@@ -411,5 +442,66 @@ nsp_feed_save_to_db(NspFeed *feed)
 	
 	return 0;
 	
+}
+
+
+int 
+nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item)
+{	
+	NspDb *db = nsp_db_get();
+	NspFeedItem *tmp_feed_item = NULL;
+	GtkTreeIter iter;
+	gboolean valid;
+	char *query = NULL;
+	char *error = NULL;
+	int stat;
+	
+	assert(feed != NULL && feed_item != NULL);
+	
+	if ( feed_item->id == 0 ) {
+		return 1;
+	}
+	
+	query = sqlite3_mprintf(
+			"DELETE FROM nsp_feed_item WHERE id = %i", 
+			feed_item->id
+		);
+	
+	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
+	sqlite3_free(query);
+	
+	nsp_db_transaction_end(db);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+
+		return 1;
+	}
+	
+	valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(feed->items_store), &iter);
+	while (valid)
+	{
+		gtk_tree_model_get (GTK_TREE_MODEL(feed->items_store), &iter,
+				ITEM_LIST_COL_ITEM_REF, &tmp_feed_item,
+				-1
+			);
+		
+		if ( tmp_feed_item != NULL && tmp_feed_item == feed_item ) {
+			break;
+		}
+		
+		valid = gtk_tree_model_iter_next (GTK_TREE_MODEL(feed->items_store), &iter);
+	}
+	
+	if ( valid ) {
+		gtk_tree_store_remove(feed->items_store, &iter);
+	}
+	
+	return 0;
 }
 

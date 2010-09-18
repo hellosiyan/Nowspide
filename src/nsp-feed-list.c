@@ -94,12 +94,64 @@ void
 nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
 {
 	GtkTreeIter iter;
-	char *col_name = NULL;
-	
-	col_name = g_strdup_printf("%s\n<span color='#666666'><small>%s</small></span>", feed->title, feed->description);
-	
 	
 	gtk_tree_store_append (GTK_TREE_STORE(list->list_model), &iter, NULL);
+	
+	gtk_tree_store_set (GTK_TREE_STORE(list->list_model), &iter,
+					LIST_COL_FEED_REF, feed,
+					-1);
+					
+	nsp_feed_list_update_entry(list, feed);
+}
+
+gboolean
+nsp_feed_list_search(NspFeedList *list, NspFeed *feed, GtkTreeIter *it)
+{
+	NspFeed *f = NULL;
+	GtkTreeIter iter;
+	gboolean valid;
+	
+	assert(feed != NULL);
+	
+	valid = gtk_tree_model_get_iter_first (list->list_model, &iter);
+	while (valid)
+	{
+		gtk_tree_model_get (list->list_model, &iter,
+				LIST_COL_FEED_REF, &f,
+				-1
+			);
+		
+		if ( f != NULL && f == feed ) {
+			break;
+		}
+		
+		valid = gtk_tree_model_iter_next (list->list_model, &iter);
+	}
+	
+	if ( valid ) 
+		*it = iter;
+	
+	return valid;
+}
+
+
+void 
+nsp_feed_list_update_entry(NspFeedList *list, NspFeed *feed)
+{
+	GtkTreeIter iter;
+	char *col_name = NULL;
+	
+	if( !nsp_feed_list_search(list, feed, &iter) ) {
+		return;
+	}
+	
+	if ( feed->unread_items > 0 ) {
+		col_name = g_strdup_printf("<b>%s (%i)</b>\n<small>%s</small>", feed->title, feed->unread_items, feed->description);
+	} else {
+		col_name = g_strdup_printf("%s\n<small>%s</small>", feed->title, feed->description);
+	}
+	
+	
 	gtk_tree_store_set (GTK_TREE_STORE(list->list_model), &iter,
 					LIST_COL_NAME, col_name,
 					LIST_COL_FEED_REF, feed,
@@ -107,5 +159,3 @@ nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
 	
 	g_free(col_name);
 }
-
-

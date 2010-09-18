@@ -82,7 +82,7 @@ nsp_parse_feed_type(xmlNode *node)
 			}
 		}
 	} else {
-		g_warning("erorrrs");
+		g_warning("invalid xml");
 	}
 	
 	return NSP_FEED_UNKNOWN;
@@ -117,7 +117,9 @@ nsp_parse_items_rss (xmlNode *root, GError **error) {
 						feed_item->title = (char*) xmlNodeGetContent(prop);
 					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"link") ) {
 						feed_item->link = (char*) xmlNodeGetContent(prop);
-					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"description") ) {
+					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"description") && feed_item->description == NULL ) {
+						feed_item->description = (char*) xmlNodeGetContent(prop);
+					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"encoded") ) {
 						feed_item->description = (char*) xmlNodeGetContent(prop);
 					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"pubdate") ) {
 						if ( feed_item->pubdate == NULL ) {
@@ -131,7 +133,13 @@ nsp_parse_items_rss (xmlNode *root, GError **error) {
 					}
 					prop = prop->next;
 				}
-			
+				
+				if ( feed_item->pubdate == NULL ) {
+					date = time(NULL);
+					feed_item->pubdate = malloc(sizeof(struct tm));
+					memcpy( feed_item->pubdate, localtime(&date), sizeof(struct tm));
+				}
+				
 				items = g_list_prepend(items, (gpointer)feed_item);
 				
 				item = item->next;

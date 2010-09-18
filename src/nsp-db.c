@@ -163,6 +163,16 @@ nsp_db_transaction_end(NspDb *nsp_db)
 }
 
 
+int 
+nsp_db_atom_int(void *user_data, int argc, char **argv, char ** azColName)
+{
+	int *value = (int*) user_data;
+	
+	*value = atoi(argv[0]);
+	
+	return 0;
+}
+
 
 
 

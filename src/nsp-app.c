@@ -49,6 +49,9 @@ nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
 		feed_item->status = NSP_FEED_ITEM_READ;
 		nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_feed_item_save_to_db, (void*)feed_item));
 		nsp_feed_item_list_update_iter(child_iter, app->current_feed->items_store, feed_item);
+		
+		app->current_feed->unread_items --;
+		nsp_feed_list_update_entry(app->window->feed_list,  app->current_feed);
 	}
 	
 	return;
@@ -57,9 +60,13 @@ nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
 static void 
 nsp_app_feed_update_real (void* user_data)
 {
+	NspApp *app = nsp_app_get();
+	
 	nsp_feed_update_items((NspFeed*)user_data);
+	
 	GDK_THREADS_ENTER();
 	nsp_feed_update_model((NspFeed*)user_data);
+	nsp_feed_list_update_entry(app->window->feed_list, (NspFeed*)user_data);
 	GDK_THREADS_LEAVE();
 }
 
@@ -69,6 +76,20 @@ nsp_app_feed_update(void* user_data)
 	NspApp *app = nsp_app_get();
 	nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_app_feed_update_real, user_data));
 }
+
+static void 
+nsp_app_feed_item_delete(void* user_data)
+{
+	NspApp *app = nsp_app_get();
+	NspFeedItem *feed_item = (NspFeedItem*)user_data;
+	gboolean foo; /* required by g_signal_emit_by_name */
+	
+	gtk_widget_grab_focus (GTK_WIDGET (app->window->feed_item_list));
+	g_signal_emit_by_name (GTK_TREE_VIEW(app->window->feed_item_list), "move-cursor", GTK_MOVEMENT_DISPLAY_LINES, 1, &foo);
+		
+	nsp_feed_delete_item(app->current_feed, feed_item);
+}
+
 
 static void
 nsp_app_load_feeds(NspApp *app)
@@ -90,7 +111,7 @@ nsp_app_load_feeds(NspApp *app)
 static void
 nsp_app_window_show(NspApp *app)
 {
-	gtk_widget_show_all(app->window->window);
+	gtk_widget_show(app->window->window);
 }
 
 static void
@@ -98,11 +119,15 @@ nsp_app_feed_list_select (void* user_data)
 {
 	NspApp *app = nsp_app_get();
 	NspFeed *feed = (NspFeed*) user_data;
+	GtkWidget *feed_item_header;
 	
 	app->current_feed = feed;
 	app->current_feed_item = NULL;
 	
 	gtk_tree_view_set_model(GTK_TREE_VIEW(app->window->feed_item_list), nsp_feed_get_items_model(feed));
+	
+	feed_item_header = GTK_WIDGET(gtk_builder_get_object(app->window->builder, "feed_item_list_header"));
+	gtk_label_set_text(GTK_LABEL(feed_item_header), feed->title);
 }
 
 static void
@@ -117,8 +142,9 @@ nsp_app_feed_add (void* user_data)
 		if (!nsp_feed_save_to_db(feed)) {
 			GDK_THREADS_ENTER();
 			nsp_feed_update_model(feed);
-			GDK_THREADS_LEAVE();
+			nsp_feed_update_unread_count(feed);
 			nsp_feed_list_add(app->window->feed_list, feed);
+			GDK_THREADS_LEAVE();
 		}
 	}
 }
@@ -155,6 +181,7 @@ nsp_app_new ()
 	
 	app->window->on_feed_add = nsp_app_feed_add;
 	app->window->on_feed_update = nsp_app_feed_update;
+	app->window->on_feed_item_delete = nsp_app_feed_item_delete;
 	app->window->feed_list->on_select = nsp_app_feed_list_select;
 	
 	nsp_app_window_show(app);
