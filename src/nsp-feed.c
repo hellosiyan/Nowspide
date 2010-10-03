@@ -60,6 +60,7 @@ nsp_feed_load_feeds_callback(void *user_data, int argc, char **argv, char ** azC
 	f->url = g_strdup(argv[2]);
 	f->site_url = g_strdup(argv[3]);
 	f->description = g_strdup(argv[4]);
+	f->icon = gdk_pixbuf_new_from_file(g_build_filename( g_get_user_data_dir(), PACKAGE, "/icons/", argv[0], NULL), NULL);
 	
 	*feeds = g_list_prepend(*feeds, (gpointer) f);
 	
@@ -278,7 +279,7 @@ nsp_feed_load_feeds_from_db()
 	GList *feed_list = NULL;
 	int stat;
 	
-	stat = sqlite3_exec(db->db, "SELECT id, title, url, site_url, description FROM nsp_feed", nsp_feed_load_feeds_callback, &feed_list, &error);
+	stat = sqlite3_exec(db->db, "SELECT id, title, url, site_url, description FROM nsp_feed ORDER BY id DESC", nsp_feed_load_feeds_callback, &feed_list, &error);
 	if ( stat != SQLITE_OK ) {
 		if ( error == NULL) {
 			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
@@ -439,7 +440,7 @@ nsp_feed_download_icon_cb (char *buffer, size_t size, size_t nitems, void *data)
 	return 0;
 }
 
-void
+int
 nsp_feed_update_icon(NspFeed *feed)
 {
 	NspNetData *data;
@@ -458,7 +459,7 @@ nsp_feed_update_icon(NspFeed *feed)
 	if ( nsp_net_load_url(feed->site_url, data) ) {
 		g_warning("ERROR: %s\n", data->error);
 		nsp_net_free(data);
-		return;
+		return 1;
 	}
 	
 	/* Find <link> tag reffering to the icon */
@@ -510,11 +511,16 @@ nsp_feed_update_icon(NspFeed *feed)
 	g_free(icon_url);
 	
 	if ( result != 0) {
-		return;
+		return 1;
 	}
 	
 	gdk_pixbuf_loader_close (loader, NULL);
 	feed->icon = gdk_pixbuf_loader_get_pixbuf (loader);
+	
+	if ( !GDK_IS_PIXBUF(feed->icon) ) {
+		feed->icon = NULL;
+		return 1;
+	}
 	
 	/* Resize and save the image */
 	if (gdk_pixbuf_get_width (feed->icon) != 16 || gdk_pixbuf_get_height (feed->icon) != 16) {
@@ -538,5 +544,7 @@ nsp_feed_update_icon(NspFeed *feed)
 	}
 	g_free(icon_path);
 	free(feed_id_string);
+	
+	return 0;
 }
 

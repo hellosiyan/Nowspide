@@ -28,6 +28,7 @@ enum
 {
 	LIST_COL_NAME = 0,
 	LIST_COL_FEED_REF,
+	LIST_COL_ICON,
 	LIST_COL_NUM
 };
 
@@ -38,6 +39,7 @@ struct _NspFeedList {
 	GtkWidget *list_view;
 	
 	NspCallback *on_select;
+	GdkPixbuf *icon_load;
 };
 
 NspFeedList * nsp_feed_list_new();
