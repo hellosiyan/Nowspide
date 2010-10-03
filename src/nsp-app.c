@@ -38,16 +38,18 @@ nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
 		return;
 	}
 	
+	g_mutex_lock(app->current_feed->mutex);
 	gtk_tree_model_sort_convert_iter_to_child_iter(GTK_TREE_MODEL_SORT(app->current_feed->items_sorter), &child_iter, &iter);
 	
-	if ( feed_item->status == NSP_FEED_ITEM_UNREAD ) {
-		feed_item->status = NSP_FEED_ITEM_READ;
-		nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_feed_item_save_to_db, (void*)feed_item));
+	if ( feed_item->status & NSP_FEED_ITEM_UNREAD ) {
+		feed_item->status ^= NSP_FEED_ITEM_UNREAD;
+		nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_feed_item_save_status_to_db, (void*)feed_item));
 		nsp_feed_item_list_update_iter(child_iter, app->current_feed->items_store, feed_item);
 		
 		app->current_feed->unread_items --;
 		nsp_feed_list_update_entry(app->window->feed_list,  app->current_feed);
 	}
+	g_mutex_unlock(app->current_feed->mutex);
 	
 	return;
 }

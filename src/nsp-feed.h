@@ -53,6 +53,7 @@ struct _NspFeed
 	int unread_items;
 	GtkTreeStore *items_store;
 	GtkTreeModel *items_sorter;
+	GMutex *mutex;
 };
 
 NspFeed * nsp_feed_new();

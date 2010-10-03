@@ -86,12 +86,11 @@ nsp_feed_item_list_update_iter(GtkTreeIter iter, GtkTreeStore *store, NspFeedIte
 	} else {
 		col_date = "";
 	}
-	
 	gtk_tree_store_set (store, &iter,
 					ITEM_LIST_COL_DATE, col_date,
 					ITEM_LIST_COL_NAME, feed_item->title,
 					ITEM_LIST_COL_ITEM_REF, feed_item,
-					ITEM_LIST_ROW_WEIGHT, (feed_item->status == NSP_FEED_ITEM_READ ? PANGO_WEIGHT_NORMAL : PANGO_WEIGHT_BOLD),
+					ITEM_LIST_ROW_WEIGHT, (feed_item->status & NSP_FEED_ITEM_UNREAD ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL),
 					-1);
 	
 	if ( *col_date != '\0' ) {

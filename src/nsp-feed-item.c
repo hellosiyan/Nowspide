@@ -29,7 +29,7 @@ nsp_feed_item_new()
 	assert(item != NULL);
 	
 	item->id = item->feed_id = 0;
-	item->status = NSP_FEED_ITEM_UNREAD;
+	item->status = 0 | NSP_FEED_ITEM_UNREAD;
 	item->title = item->link = item->description = NULL;
 	item->pubdate = NULL;
 	
@@ -43,10 +43,15 @@ nsp_feed_item_free(NspFeedItem * item)
 		return;
 	}
 	
+	item->status |= NSP_FEED_ITEM_DELETED;
 	free(item->title);
+	item->title = NULL;
 	free(item->link);
+	item->link = NULL;
 	free(item->description);
+	item->description = NULL;
 	free(item->pubdate);
+	item->pubdate = NULL;
 }
 
 int
@@ -56,7 +61,6 @@ nsp_feed_item_save_to_db(NspFeedItem *feed_item)
 	char *query = NULL;
 	char *error = NULL;
 	int stat;
-	
 	
 	time_t date = 0;
 	if ( feed_item->pubdate ) {
@@ -72,7 +76,7 @@ nsp_feed_item_save_to_db(NspFeedItem *feed_item)
 				feed_item->link, 
 				feed_item->description, 
 				date, 
-				feed_item->status, 
+				feed_item->status & NSP_FEED_ITEM_UNREAD, 
 				feed_item->id
 			);
 	} else {
@@ -84,7 +88,7 @@ nsp_feed_item_save_to_db(NspFeedItem *feed_item)
 				feed_item->link, 
 				feed_item->description, 
 				date, 
-				feed_item->status
+				feed_item->status & NSP_FEED_ITEM_UNREAD
 			);
 	}
 	
@@ -111,3 +115,41 @@ nsp_feed_item_save_to_db(NspFeedItem *feed_item)
 	return 0;
 }
 
+int
+nsp_feed_item_save_status_to_db(NspFeedItem *feed_item) 
+{
+	NspDb *db = nsp_db_get();
+	char *query = NULL;
+	char *error = NULL;
+	int stat;
+	
+	if ( feed_item->status & NSP_FEED_ITEM_DELETED || feed_item->id == 0 ) {
+		return 0;
+	}
+	
+	nsp_db_transaction_begin(db);
+	
+	query = sqlite3_mprintf(
+			"UPDATE nsp_feed_item SET status = %i WHERE id = %i", 
+			feed_item->status & NSP_FEED_ITEM_UNREAD, 
+			feed_item->id
+		);
+	
+	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
+	sqlite3_free(query);
+	
+	nsp_db_transaction_end(db);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+
+		return 1;
+	}
+	
+	return 0;
+}

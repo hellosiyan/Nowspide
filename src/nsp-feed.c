@@ -21,6 +21,7 @@
 #include "nsp-feed-parser.h"
 #include "nsp-feed-list.h"
 #include "nsp-feed-item-list.h"
+#include "nsp-app.h"
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
@@ -97,6 +98,7 @@ nsp_feed_new()
 	feed->unread_items = 0;
 	feed->items_store = nsp_feed_item_list_get_model();
 	feed->items_sorter = gtk_tree_model_sort_new_with_model(GTK_TREE_MODEL(feed->items_store));
+	feed->mutex = g_mutex_new();
 	
 	gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (feed->items_sorter), ITEM_LIST_COL_DATE, GTK_SORT_DESCENDING);
 	gtk_tree_sortable_set_sort_func(GTK_TREE_SORTABLE (feed->items_sorter), ITEM_LIST_COL_DATE, (GtkTreeIterCompareFunc)nsp_feed_sort_date, NULL, NULL);
@@ -136,6 +138,7 @@ nsp_feed_free (NspFeed *feed)
 	free(feed->title);
 	free(feed->url);
 	free(feed->description);
+	g_mutex_free(feed->mutex);
 }
 
 int
@@ -170,6 +173,8 @@ nsp_feed_update_items(NspFeed *feed)
 		return 1;
 	}
 	
+	g_mutex_lock(feed->mutex);
+	
 	nsp_feed_clear_items(feed);
 	nsp_feed_parse(xml_doc, feed);
 	
@@ -180,6 +185,7 @@ nsp_feed_update_items(NspFeed *feed)
 		nsp_feed_save_to_db(feed);
 		nsp_feed_load_items_from_db(feed);
 	}
+	g_mutex_unlock(feed->mutex);
 	
 	return 0;
 }
@@ -210,7 +216,7 @@ nsp_feed_update_unread_count(NspFeed *feed)
 	int stat;
 	int count;
 	
-	char *query = sqlite3_mprintf("SELECT COUNT(1) FROM nsp_feed f LEFT JOIN nsp_feed_item fi ON fi.feed_id = f.id WHERE f.id = %i AND fi.status = 0", feed->id);
+	char *query = sqlite3_mprintf("SELECT COUNT(1) FROM nsp_feed f LEFT JOIN nsp_feed_item fi ON fi.feed_id = f.id WHERE f.id = %i AND fi.status = 1", feed->id);
 	
 	stat = sqlite3_exec(db->db, query, nsp_db_atom_int, &count, &error);
 	sqlite3_free(query);
@@ -352,27 +358,19 @@ nsp_feed_save_to_db(NspFeed *feed)
 	
 }
 
-
-int 
-nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item)
-{	
+static void 
+nsp_feed_delete_item_from_db(void *user_data)
+{
+	int *feed_item_id = (int*)user_data;
 	NspDb *db = nsp_db_get();
-	NspFeedItem *tmp_feed_item = NULL;
-	GtkTreeIter iter;
-	gboolean valid;
 	char *query = NULL;
 	char *error = NULL;
 	int stat;
-	
-	assert(feed != NULL && feed_item != NULL);
-	
-	if ( feed_item->id == 0 ) {
-		return 1;
-	}
+	assert(feed_item_id != NULL);
 	
 	query = sqlite3_mprintf(
 			"DELETE FROM nsp_feed_item WHERE id = %i", 
-			feed_item->id
+			*feed_item_id
 		);
 	
 	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
@@ -387,10 +385,23 @@ nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item)
 			g_warning("Error: %s\n", error);
 			sqlite3_free(error);
 		}
-
-		return 1;
 	}
+}
+
+int 
+nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item)
+{	
+	NspFeedItem *tmp_feed_item = NULL;
+	NspApp *app = nsp_app_get();
+	GtkTreeIter iter;
+	gboolean valid;
+	int *feed_item_id = malloc(sizeof(int));
+	*feed_item_id = feed_item->id;
 	
+	feed_item->status |= NSP_FEED_ITEM_DELETED;
+	nsp_jobs_queue(app->jobs, nsp_job_new( (NspCallback*)nsp_feed_delete_item_from_db, feed_item_id ));
+	
+	g_mutex_lock(feed->mutex);
 	valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(feed->items_store), &iter);
 	while (valid)
 	{
@@ -409,6 +420,7 @@ nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item)
 	if ( valid ) {
 		gtk_tree_store_remove(feed->items_store, &iter);
 	}
+	g_mutex_unlock(feed->mutex);
 	
 	return 0;
 }

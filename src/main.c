@@ -106,6 +106,8 @@ main (int argc, char *argv[])
 	
 	gtk_main();
 	
+	g_thread_pool_free(app->jobs->pool, FALSE, TRUE);
+	
 	return 0;
 }
 

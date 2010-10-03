@@ -26,8 +26,8 @@
 #include "nsp-typedefs.h"
 
 typedef enum {
-	NSP_FEED_ITEM_UNREAD,
-	NSP_FEED_ITEM_READ
+	NSP_FEED_ITEM_UNREAD = 	0b00000001,
+	NSP_FEED_ITEM_DELETED =	0b00000010,
 } NspFeedItemStatus;
 
 typedef struct _NspFeedItem NspFeedItem;
@@ -36,7 +36,7 @@ struct _NspFeedItem
 {
 	int id;
 	int feed_id;
-	NspFeedItemStatus status;
+	unsigned char status;
 	char *title;
 	char *link;
 	char *description;
@@ -47,5 +47,6 @@ NspFeedItem	* nsp_feed_item_new();
 void nsp_feed_item_free(NspFeedItem *item);
 
 int nsp_feed_item_save_to_db(NspFeedItem *feed_item);
+int nsp_feed_item_save_status_to_db(NspFeedItem *feed_item);
 
 #endif /* __NSP_FEED_ITEM_H_ */
