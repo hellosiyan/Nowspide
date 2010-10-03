@@ -48,12 +48,14 @@ struct _NspFeed
 	int id;
 	char *title;
 	char *url;
+	char *site_url;
 	char *description;
 	GList * items;
 	int unread_items;
 	GtkTreeStore *items_store;
 	GtkTreeModel *items_sorter;
 	GMutex *mutex;
+	GdkPixbuf *icon;
 };
 
 NspFeed * nsp_feed_new();
@@ -70,6 +72,7 @@ int nsp_feed_save_to_db(NspFeed *feed);
 int nsp_feed_update_items(NspFeed *feed);
 void nsp_feed_update_unread_count(NspFeed *feed);
 void nsp_feed_update_model(NspFeed *feed);
+void nsp_feed_update_icon(NspFeed *feed);
 
 int nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item);
 

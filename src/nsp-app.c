@@ -163,6 +163,7 @@ nsp_app_feed_add (void* user_data)
 			nsp_feed_update_unread_count(feed);
 			nsp_feed_list_add(app->window->feed_list, feed);
 			GDK_THREADS_LEAVE();
+			nsp_feed_update_icon(feed);
 		}
 	}
 }

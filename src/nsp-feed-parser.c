@@ -158,10 +158,12 @@ nsp_parse_feed_rss(xmlNode *node, NspFeed *feed)
 			tmp = tmp->children;
 			
 			while ( tmp != NULL ) {
-				if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "title") ) {
+				if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "title") && feed->title == NULL ) {
 					feed->title = (char *) xmlNodeGetContent(tmp);
-				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "description") ) {
+				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "description") && feed->description == NULL ) {
 					feed->description = (char *) xmlNodeGetContent(tmp);
+				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "link") && tmp->ns == NULL && feed->site_url == NULL ) {
+					feed->site_url = (char *) xmlNodeGetContent(tmp);
 				}
 				
 				tmp = tmp->next;
