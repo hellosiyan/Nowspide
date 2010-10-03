@@ -91,7 +91,7 @@ static const GtkActionEntry action_entries_window[] = {
 };
 
 static const GtkActionEntry action_entries_feed_item[] = {
-    { "ItemToggleStatus", GTK_STOCK_APPLY, "Toggle _Read Status", NULL,
+    { "ItemToggleStatus", GTK_STOCK_APPLY, "Mark as _Unread", NULL,
       "Toggle Read Status", G_CALLBACK(nsp_window_cmd_item_toggle_status) },
     { "ItemDelete", GTK_STOCK_DELETE, "Delete", "Delete",
       "Delete the item", G_CALLBACK(nsp_window_cmd_item_delete) }
@@ -106,7 +106,7 @@ nsp_window_new()
 	win->builder = gtk_builder_new();
 	win->feed_list = nsp_feed_list_new();
 	win->feed_item_list = nsp_feed_item_list_get_view();
-	win->on_feed_add = win->on_feed_update = win->on_feed_item_delete = NULL;
+	win->on_feed_add = win->on_feed_update = win->on_feed_item_delete = win->on_feed_item_toggle_read = NULL;
 	win->feed_item_menu = NULL;
 	
 	
@@ -276,7 +276,11 @@ nsp_window_cmd_update_feed(GtkButton *button, gpointer user_data)
 static void 
 nsp_window_cmd_item_toggle_status (GtkAction *action, gpointer user_data)
 {
-	printf("toggle!\n");
+	NspApp *app = nsp_app_get();
+	
+	if ( app->current_feed_item != NULL && app->window->on_feed_item_toggle_read != NULL) {
+		app->window->on_feed_item_toggle_read(app->current_feed_item);
+	}
 }
 
 static void 

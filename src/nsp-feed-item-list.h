@@ -44,6 +44,7 @@ NspFeedItemList * nsp_feed_item_list_new();
 GtkWidget * nsp_feed_item_list_get_view();
 GtkTreeStore * nsp_feed_item_list_get_model();
 void nsp_feed_item_list_update_iter(GtkTreeIter iter, GtkTreeStore *store, NspFeedItem *feed_item);
+gboolean nsp_feed_item_list_search(GtkTreeModel *list, NspFeedItem *feed_item, GtkTreeIter *it);
 
 
 #endif /* __NSP_FEED_ITEM_LIST__ */

@@ -96,3 +96,33 @@ nsp_feed_item_list_update_iter(GtkTreeIter iter, GtkTreeStore *store, NspFeedIte
 		g_free(col_date);
 	}
 }
+
+gboolean
+nsp_feed_item_list_search(GtkTreeModel *list, NspFeedItem *feed_item, GtkTreeIter *it)
+{
+	NspFeedItem *f = NULL;
+	GtkTreeIter iter;
+	gboolean valid;
+	
+	assert(feed_item != NULL);
+	
+	valid = gtk_tree_model_get_iter_first (list, &iter);
+	while (valid)
+	{
+		gtk_tree_model_get (list, &iter,
+				ITEM_LIST_COL_ITEM_REF, &f,
+				-1
+			);
+		
+		if ( f != NULL && f == feed_item ) {
+			break;
+		}
+		
+		valid = gtk_tree_model_iter_next (list, &iter);
+	}
+	
+	if ( valid ) 
+		*it = iter;
+	
+	return valid;
+}

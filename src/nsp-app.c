@@ -87,6 +87,27 @@ nsp_app_feed_item_delete(void* user_data)
 	nsp_feed_delete_item(app->current_feed, feed_item);
 }
 
+static void
+nsp_app_feed_item_toggle_read(void* user_data)
+{
+	NspApp *app = nsp_app_get();
+	NspFeedItem *feed_item = (NspFeedItem*)user_data;
+	GtkTreeIter iter;
+	
+	if ( feed_item->status & NSP_FEED_ITEM_UNREAD ) {
+		return;
+	}
+	
+	feed_item->status |= NSP_FEED_ITEM_UNREAD;
+	
+	if( nsp_feed_item_list_search(GTK_TREE_MODEL(app->current_feed->items_store), feed_item, &iter) ) {
+		nsp_feed_item_list_update_iter( iter, app->current_feed->items_store, feed_item);
+		nsp_feed_item_save_status_to_db(feed_item);
+		app->current_feed->unread_items ++;
+		nsp_feed_list_update_entry(app->window->feed_list,  app->current_feed);
+	} 
+}
+
 
 static void
 nsp_app_load_feeds(NspApp *app)
@@ -179,6 +200,7 @@ nsp_app_new ()
 	app->window->on_feed_add = nsp_app_feed_add;
 	app->window->on_feed_update = nsp_app_feed_update;
 	app->window->on_feed_item_delete = nsp_app_feed_item_delete;
+	app->window->on_feed_item_toggle_read = nsp_app_feed_item_toggle_read;
 	app->window->feed_list->on_select = nsp_app_feed_list_select;
 	
 	nsp_app_window_show(app);
