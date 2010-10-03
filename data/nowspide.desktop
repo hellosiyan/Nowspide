@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Nowpside
+Name=Nowspide
 Comment=Handy and modern desktop feed reader
 TryExec=nowspide
-Exec=nowpside %F
+Exec=nowspide
 Icon=gtk-info
 StartupNotify=true
 Terminal=false
