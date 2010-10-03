@@ -292,7 +292,8 @@ nsp_window_cmd_item_delete (GtkAction *action, gpointer user_data)
 static gboolean
 nsp_window_cmd_popup_feed_item_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data)  
 {
-	if ( event->button != 3 )
+	NspApp *app = nsp_app_get();
+	if ( event->button != 3 || app->current_feed_item == NULL || !gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(widget), event->x, event->y, NULL, NULL, NULL, NULL) )
 		return FALSE;
 	
     gtk_menu_popup(GTK_MENU(((NspWindow*)user_data)->feed_item_menu),
