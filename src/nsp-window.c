@@ -260,16 +260,9 @@ static void
 nsp_window_cmd_update_feed(GtkButton *button, gpointer user_data) 
 {
 	NspWindow *win = (NspWindow*) user_data;
-	GtkTreeIter iter;
-	GtkTreeModel *model;
-	NspFeed *feed = NULL;
 	
-	if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(GTK_TREE_VIEW(win->feed_list->list_view)), &model, &iter) ) {
-		gtk_tree_model_get(model, &iter, LIST_COL_FEED_REF, &feed, -1);
-	}
-	
-	if ( feed != NULL && win->on_feed_update != NULL) {
-		win->on_feed_update(feed);
+	if ( win->on_feed_update != NULL) {
+		win->on_feed_update(NULL);
 	}
 }
 

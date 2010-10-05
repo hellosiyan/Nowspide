@@ -79,7 +79,12 @@ static void
 nsp_app_feed_update(void* user_data)
 {
 	NspApp *app = nsp_app_get();
-	nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_app_feed_update_real, user_data));
+	GList *feeds = app->feeds;
+	
+	while ( feeds != NULL ) {
+		nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_app_feed_update_real, feeds->data));
+		feeds = feeds->next;
+	}
 }
 
 static void 
