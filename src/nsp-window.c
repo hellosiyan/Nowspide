@@ -36,7 +36,7 @@ enum
 
 static void nsp_window_cmd_about (GtkAction *action, GtkWindow *window);
 static void nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data);
-static void nsp_window_cmd_update_feed (GtkButton *button, gpointer user_data);
+static void nsp_window_cmd_update_feed (GtkWidget *button, gpointer user_data);
 static void nsp_window_cmd_item_toggle_status (GtkAction *action, gpointer user_data);
 static void nsp_window_cmd_item_delete (GtkAction *action, gpointer user_data);
 static gboolean nsp_window_cmd_popup_feed_item_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data);
@@ -55,6 +55,7 @@ const char *xml_main_menu =
 	"<ui name=\"ui-manager\">"
 		"<popup name=\"menubar1\" accelerators=\"true\">"
 		  	"<menuitem action=\"FeedAdd\"/>"
+		  	"<menuitem action=\"FeedUpdate\"/>"
 	  		"<separator/>"
 		  	"<menuitem action=\"HelpAbout\"/>"
 	  		"<separator/>"
@@ -77,6 +78,8 @@ const char *xml_feed_item_menu =
 static const GtkActionEntry action_entries_window[] = {
     { "FeedAdd", GTK_STOCK_ADD, "_Add Feed", NULL,
       "Add Feed", G_CALLBACK(nsp_window_cmd_add_feed) },
+    { "FeedUpdate", GTK_STOCK_REFRESH, "_Update Feeds", NULL,
+      "Update all feeds", G_CALLBACK(nsp_window_cmd_update_feed) },
     { "FileClose", GTK_STOCK_CLOSE, "_Close", "<control>W",
       NULL, G_CALLBACK(gtk_main_quit) },
     { "FileQuit", GTK_STOCK_QUIT, "_Quit", "<control>Q",
@@ -256,12 +259,12 @@ nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data)
 
 
 static void
-nsp_window_cmd_update_feed(GtkButton *button, gpointer user_data) 
+nsp_window_cmd_update_feed(GtkWidget *button, gpointer user_data) 
 {
-	NspWindow *win = (NspWindow*) user_data;
+	NspApp *app = nsp_app_get();
 	
-	if ( win->on_feed_update != NULL) {
-		win->on_feed_update(NULL);
+	if ( app->window->on_feed_update != NULL) {
+		app->window->on_feed_update(NULL);
 	}
 }
 
