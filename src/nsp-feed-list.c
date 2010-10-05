@@ -93,8 +93,7 @@ nsp_feed_list_new()
 	return list;
 }
 
-
-void 
+GtkTreeIter
 nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
 {
 	GtkTreeIter iter;
@@ -106,6 +105,20 @@ nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
 					-1);
 					
 	nsp_feed_list_update_entry(list, feed);
+	
+	return iter;
+}
+
+void
+nsp_feed_list_remove(NspFeedList *list, NspFeed *feed)
+{
+	GtkTreeIter iter;
+	
+	if( !nsp_feed_list_search(list, feed, &iter) ) {
+		return;
+	}
+	
+	gtk_tree_store_remove(GTK_TREE_STORE(list->list_model), &iter);
 }
 
 gboolean
@@ -137,7 +150,6 @@ nsp_feed_list_search(NspFeedList *list, NspFeed *feed, GtkTreeIter *it)
 	
 	return valid;
 }
-
 
 void 
 nsp_feed_list_update_entry(NspFeedList *list, NspFeed *feed)

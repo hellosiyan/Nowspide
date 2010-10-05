@@ -224,7 +224,6 @@ static void
 nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data)
 {
 	NspApp *app = nsp_app_get();
-	NspWindow *win = (NspWindow*)user_data;
 	GtkDialog *dialog = (GtkDialog*)gtk_dialog_new();
 	GtkWidget *dialog_content = gtk_dialog_get_content_area(dialog);
 	GtkWidget *input_area = gtk_entry_new();
@@ -248,8 +247,8 @@ nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data)
 	gtk_dialog_add_buttons(dialog, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_ADD, GTK_RESPONSE_OK, NULL);
 	gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
 	
-	if (gtk_dialog_run(dialog) == GTK_RESPONSE_OK && win->on_feed_add != NULL) {
-		nsp_jobs_queue(app->jobs, nsp_job_new(win->on_feed_add, (void*)gtk_entry_get_text(GTK_ENTRY(input_area))));
+	if (gtk_dialog_run(dialog) == GTK_RESPONSE_OK && app->window->on_feed_add != NULL) {
+		nsp_jobs_queue(app->jobs, nsp_job_new(app->window->on_feed_add, (void*)gtk_entry_get_text(GTK_ENTRY(input_area))));
 	}
 	
 	gtk_widget_destroy(GTK_WIDGET(dialog));

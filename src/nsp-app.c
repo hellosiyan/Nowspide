@@ -167,22 +167,42 @@ nsp_app_feed_add (void* user_data)
 	NspApp *app = nsp_app_get();
 	char *url = g_strdup((const char*) user_data);
 	NspFeed *feed;
+	GtkTreeIter iter;
+	char *new_feed_title = "New Subscription";
 	
-	if ((feed = nsp_feed_new_from_url(url))) {
-		nsp_feed_update_items(feed);
-		if (!nsp_feed_save_to_db(feed)) {
-			GDK_THREADS_ENTER();
-			nsp_feed_update_model(feed);
-			nsp_feed_update_unread_count(feed);
-			nsp_feed_list_add(app->window->feed_list, feed);
-			GDK_THREADS_LEAVE();
-			
-			if ( !nsp_feed_update_icon(feed) ) {
-				GDK_THREADS_ENTER();
-				nsp_feed_list_update_entry(app->window->feed_list, feed);
-				GDK_THREADS_LEAVE();
-			}
-		}
+	/* Create the new feed, populate it and add it to the list */
+	feed = nsp_feed_new();
+	feed->url = url;
+	feed->description = malloc(sizeof(char));
+	feed->description = '\0';
+	feed->title = malloc(sizeof(char)*(strlen(new_feed_title) + 1));
+	memcpy(feed->title, new_feed_title, sizeof(char)*(strlen(new_feed_title)+1));
+	
+	GDK_THREADS_ENTER();
+	iter = nsp_feed_list_add(app->window->feed_list, feed);
+	gtk_tree_store_set (GTK_TREE_STORE(app->window->feed_list->list_model), &iter,
+					LIST_COL_ICON, app->window->feed_list->icon_load,
+					-1);
+	GDK_THREADS_LEAVE();
+	
+	/* Fetch and save the items */
+	if ( nsp_feed_update_items(feed) || nsp_feed_save_to_db(feed) ) {
+		nsp_feed_list_remove(app->window->feed_list, feed);
+		nsp_feed_free(feed);
+		return;
+	}
+	
+	app->feeds = g_list_append(app->feeds, feed);
+	GDK_THREADS_ENTER();
+	nsp_feed_update_model(feed);
+	nsp_feed_update_unread_count(feed);
+	nsp_feed_list_update_entry(app->window->feed_list, feed);
+	GDK_THREADS_LEAVE();
+	
+	if ( !nsp_feed_update_icon(feed) ) {
+		GDK_THREADS_ENTER();
+		nsp_feed_list_update_entry(app->window->feed_list, feed);
+		GDK_THREADS_LEAVE();
 	}
 }
 

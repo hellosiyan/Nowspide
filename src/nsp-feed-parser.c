@@ -158,7 +158,10 @@ nsp_parse_feed_rss(xmlNode *node, NspFeed *feed)
 			tmp = tmp->children;
 			
 			while ( tmp != NULL ) {
-				if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "title") && feed->title == NULL ) {
+				if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "title") ) {
+					if (feed->title != NULL) {
+						free(feed->title);
+					}
 					feed->title = (char *) xmlNodeGetContent(tmp);
 				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "description") && feed->description == NULL ) {
 					feed->description = (char *) xmlNodeGetContent(tmp);
