@@ -17,15 +17,7 @@
  * along with Nowspide.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sqlite3.h>
-#include <glib.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <fcntl.h>
-#include "config.h"
 #include "nsp-db.h"
-#include "nsp-feed.h"
 
 static NspDb *db = NULL;
 
@@ -64,7 +56,7 @@ nsp_db_create()
 	
 	stat = sqlite3_exec(db_file," \
 		BEGIN TRANSACTION; \
-			CREATE TABLE nsp_feed ( id INTEGER PRIMARY KEY, title TEXT, url TEXT UNIQUE, description TEXT); \
+			CREATE TABLE nsp_feed ( id INTEGER PRIMARY KEY, title TEXT, url TEXT UNIQUE, site_url TEXT, description TEXT); \
 			CREATE TABLE nsp_feed_item ( id INTEGER PRIMARY KEY, feed_id INTEGER, title TEXT, url TEXT,description TEXT, date INTEGER, status INTEGER, UNIQUE (feed_id, url)); \
 		COMMIT; \
 		",

@@ -18,10 +18,10 @@
  */ 
 
 #include "nsp-jobs.h"
+
 #include <stdlib.h>
 #include <assert.h>
 #include <sys/sysinfo.h>
-#include <gtk/gtk.h>
 
 NspJob *
 nsp_job_new(NspCallback *worker, void *data)

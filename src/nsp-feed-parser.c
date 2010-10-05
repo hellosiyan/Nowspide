@@ -19,15 +19,11 @@
 
 #define _GNU_SOURCE 1
 
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <gtk/gtk.h>
+#include "nsp-feed-parser.h"
+
 #include <assert.h>
 #include <string.h>
 #include <time.h>
-
-#include "nsp-feed-parser.h"
-#include "nsp-feed.h"
 
 #define ATOM_0_3_URI	"http://purl.org/atom/ns#"
 #define ATOM_1_0_URI	"http://www.w3.org/2005/Atom"
@@ -163,9 +159,14 @@ nsp_parse_feed_rss(xmlNode *node, NspFeed *feed)
 			
 			while ( tmp != NULL ) {
 				if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "title") ) {
+					if (feed->title != NULL) {
+						free(feed->title);
+					}
 					feed->title = (char *) xmlNodeGetContent(tmp);
-				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "description") ) {
+				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "description") && feed->description == NULL ) {
 					feed->description = (char *) xmlNodeGetContent(tmp);
+				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "link") && tmp->ns == NULL && feed->site_url == NULL ) {
+					feed->site_url = (char *) xmlNodeGetContent(tmp);
 				}
 				
 				tmp = tmp->next;

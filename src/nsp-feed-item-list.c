@@ -19,7 +19,6 @@
  
 #include "nsp-feed-item-list.h"
 
-#include <gtk/gtk.h>
 #include <assert.h>
 
 NspFeedItemList *
@@ -59,15 +58,14 @@ nsp_feed_item_list_get_view()
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(list_view), FALSE);
 	
 	column = gtk_tree_view_column_new_with_attributes ("Date", renderer, "text", ITEM_LIST_COL_DATE, "weight", ITEM_LIST_ROW_WEIGHT, NULL);
-	gtk_tree_view_insert_column (GTK_TREE_VIEW(list_view), column, -1);
+	gtk_tree_view_insert_column (GTK_TREE_VIEW(list_view), column, 2);
 	gtk_tree_view_column_set_sort_column_id (column, ITEM_LIST_COL_DATE);
 	
 	renderer = gtk_cell_renderer_text_new();
 	g_object_set(renderer, "ellipsize", PANGO_ELLIPSIZE_END, "width-chars", -1, "wrap-mode", PANGO_WRAP_WORD, NULL);
-	//gtk_cell_renderer_text_set_fixed_height_from_font(GTK_CELL_RENDERER_TEXT(renderer), 1);
 	
 	column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "weight", ITEM_LIST_ROW_WEIGHT, "text", ITEM_LIST_COL_NAME, NULL);
-	gtk_tree_view_insert_column (GTK_TREE_VIEW(list_view), column, -1);
+	gtk_tree_view_insert_column (GTK_TREE_VIEW(list_view), column, 0);
 	gtk_tree_view_column_set_sort_column_id (column, ITEM_LIST_COL_NAME);
 	g_object_set (column, "resizable", TRUE, "expand", TRUE, NULL);
 	
@@ -87,15 +85,44 @@ nsp_feed_item_list_update_iter(GtkTreeIter iter, GtkTreeStore *store, NspFeedIte
 	} else {
 		col_date = "";
 	}
-	
 	gtk_tree_store_set (store, &iter,
 					ITEM_LIST_COL_DATE, col_date,
 					ITEM_LIST_COL_NAME, feed_item->title,
 					ITEM_LIST_COL_ITEM_REF, feed_item,
-					ITEM_LIST_ROW_WEIGHT, (feed_item->status == NSP_FEED_ITEM_READ ? PANGO_WEIGHT_NORMAL : PANGO_WEIGHT_BOLD),
+					ITEM_LIST_ROW_WEIGHT, (feed_item->status & NSP_FEED_ITEM_UNREAD ? PANGO_WEIGHT_BOLD : PANGO_WEIGHT_NORMAL),
 					-1);
 	
 	if ( *col_date != '\0' ) {
 		g_free(col_date);
 	}
+}
+
+gboolean
+nsp_feed_item_list_search(GtkTreeModel *list, NspFeedItem *feed_item, GtkTreeIter *it)
+{
+	NspFeedItem *f = NULL;
+	GtkTreeIter iter;
+	gboolean valid;
+	
+	assert(feed_item != NULL);
+	
+	valid = gtk_tree_model_get_iter_first (list, &iter);
+	while (valid)
+	{
+		gtk_tree_model_get (list, &iter,
+				ITEM_LIST_COL_ITEM_REF, &f,
+				-1
+			);
+		
+		if ( f != NULL && f == feed_item ) {
+			break;
+		}
+		
+		valid = gtk_tree_model_iter_next (list, &iter);
+	}
+	
+	if ( valid ) 
+		*it = iter;
+	
+	return valid;
 }

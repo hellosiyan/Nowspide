@@ -21,11 +21,15 @@
 #ifndef __NSP_FEED_H_
 #define __NSP_FEED_H_ 1
 
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-#include <gtk/gtk.h>
 #include <time.h>
+#include <assert.h>
+#include <stdlib.h>
+#include <gtk/gtk.h>
+
+#include "nsp-db.h"
+#include "nsp-net.h"
 #include "nsp-typedefs.h"
+#include "nsp-feed-item.h"
 
 typedef enum {
 	NSP_FEED_UNKNOWN,
@@ -36,24 +40,6 @@ typedef enum {
 	NSP_FEED_ATOM_1_0
 } NspFeedType;
 
-typedef enum {
-	NSP_FEED_ITEM_UNREAD,
-	NSP_FEED_ITEM_READ
-} NspFeedItemStatus;
-
-typedef struct _NspFeedItem NspFeedItem;
-
-struct _NspFeedItem
-{
-	int id;
-	int feed_id;
-	NspFeedItemStatus status;
-	char *title;
-	char *link;
-	char *description;
-	struct tm *pubdate;
-};
-
 typedef struct _NspFeed NspFeed;
 
 struct _NspFeed
@@ -62,15 +48,15 @@ struct _NspFeed
 	int id;
 	char *title;
 	char *url;
+	char *site_url;
 	char *description;
 	GList * items;
 	int unread_items;
 	GtkTreeStore *items_store;
 	GtkTreeModel *items_sorter;
+	GMutex *mutex;
+	GdkPixbuf *icon;
 };
-
-NspFeedItem	* nsp_feed_item_new();
-void nsp_feed_item_free(NspFeedItem *item);
 
 NspFeed * nsp_feed_new();
 NspFeed * nsp_feed_new_from_url(const char *xml);
@@ -82,11 +68,11 @@ GList * nsp_feed_load_feeds_from_db();
 GList * nsp_feed_load_feeds_with_items_from_db();
 
 int nsp_feed_save_to_db(NspFeed *feed);
-int nsp_feed_item_save_to_db(NspFeedItem *feed_item);
 
 int nsp_feed_update_items(NspFeed *feed);
 void nsp_feed_update_unread_count(NspFeed *feed);
 void nsp_feed_update_model(NspFeed *feed);
+int nsp_feed_update_icon(NspFeed *feed);
 
 int nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item);
 

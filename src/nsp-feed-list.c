@@ -21,7 +21,6 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <gtk/gtk.h>
 
 static GtkCellRenderer *
 nsp_feed_list_renderer_text()
@@ -63,20 +62,25 @@ nsp_feed_list_new()
 	list->on_select = NULL;
 	
 	GtkCellRenderer *renderer = nsp_feed_list_renderer_text();
+	list->icon_load = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), "gtk-refresh", 16, 0, NULL);
 	
 	
-	list->list_model = (GtkTreeModel *)gtk_tree_store_new(LIST_COL_NUM, G_TYPE_STRING, G_TYPE_POINTER);
+	list->list_model = (GtkTreeModel *)gtk_tree_store_new(LIST_COL_NUM, G_TYPE_STRING, G_TYPE_POINTER, GDK_TYPE_PIXBUF);
 	
 	list->list_view = gtk_tree_view_new();
 	gtk_tree_view_set_rules_hint (GTK_TREE_VIEW(list->list_view), TRUE);
 	gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(list->list_view), FALSE);
 	
-	// Name columns
+	// Name column
 	column = gtk_tree_view_column_new_with_attributes ("Name", renderer, "markup", LIST_COL_NAME, NULL);
-	gtk_tree_view_insert_column (GTK_TREE_VIEW(list->list_view), column, -1);
+	gtk_tree_view_insert_column (GTK_TREE_VIEW(list->list_view), column, 1);
 	gtk_tree_view_column_set_sort_column_id (column, LIST_COL_NAME);
 	g_object_set (column, "resizable", TRUE, "expand", TRUE, NULL);
 	
+	// Icon column
+	renderer = gtk_cell_renderer_pixbuf_new();
+	column = gtk_tree_view_column_new_with_attributes ("Icon", renderer, "pixbuf", LIST_COL_ICON, NULL);
+	gtk_tree_view_insert_column (GTK_TREE_VIEW(list->list_view), column, 0);
 	
 	gtk_tree_view_set_model(GTK_TREE_VIEW(list->list_view), list->list_model);
 	gtk_tree_view_set_show_expanders(GTK_TREE_VIEW(list->list_view), FALSE);
@@ -89,8 +93,7 @@ nsp_feed_list_new()
 	return list;
 }
 
-
-void 
+GtkTreeIter
 nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
 {
 	GtkTreeIter iter;
@@ -98,10 +101,24 @@ nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
 	gtk_tree_store_append (GTK_TREE_STORE(list->list_model), &iter, NULL);
 	
 	gtk_tree_store_set (GTK_TREE_STORE(list->list_model), &iter,
-					LIST_COL_FEED_REF, feed,
+					LIST_COL_FEED_REF, feed, LIST_COL_ICON, feed->icon,
 					-1);
 					
 	nsp_feed_list_update_entry(list, feed);
+	
+	return iter;
+}
+
+void
+nsp_feed_list_remove(NspFeedList *list, NspFeed *feed)
+{
+	GtkTreeIter iter;
+	
+	if( !nsp_feed_list_search(list, feed, &iter) ) {
+		return;
+	}
+	
+	gtk_tree_store_remove(GTK_TREE_STORE(list->list_model), &iter);
 }
 
 gboolean
@@ -134,7 +151,6 @@ nsp_feed_list_search(NspFeedList *list, NspFeed *feed, GtkTreeIter *it)
 	return valid;
 }
 
-
 void 
 nsp_feed_list_update_entry(NspFeedList *list, NspFeed *feed)
 {
@@ -146,14 +162,21 @@ nsp_feed_list_update_entry(NspFeedList *list, NspFeed *feed)
 	}
 	
 	if ( feed->unread_items > 0 ) {
-		col_name = g_strdup_printf("<b>%s (%i)</b>\n<small>%s</small>", feed->title, feed->unread_items, feed->description);
+		col_name = g_strdup_printf("<b>%s (%i)</b>", feed->title, feed->unread_items);
 	} else {
-		col_name = g_strdup_printf("%s\n<small>%s</small>", feed->title, feed->description);
+		col_name = g_strdup_printf("%s", feed->title);
+	}
+	
+	if ( feed->description != NULL && *(feed->description) != '\0' ) {
+		char *old_col_name = col_name;
+		col_name = g_strdup_printf("%s\n<small>%s</small>", col_name, feed->description);
+		g_free(old_col_name);
 	}
 	
 	gtk_tree_store_set (GTK_TREE_STORE(list->list_model), &iter,
 					LIST_COL_NAME, col_name,
 					LIST_COL_FEED_REF, feed,
+					LIST_COL_ICON, feed->icon,
 					-1);
 	
 	g_free(col_name);

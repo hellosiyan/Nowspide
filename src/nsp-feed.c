@@ -19,14 +19,13 @@
 
 #include "nsp-feed.h"
 #include "nsp-feed-parser.h"
-#include "nsp-db.h"
-#include "nsp-net.h"
-#include "nsp-feed-item-list.h"
 #include "nsp-feed-list.h"
-#include <assert.h>
-#include <stdlib.h>
-#include <time.h>
+#include "nsp-feed-item-list.h"
+#include "nsp-app.h"
 
+#include <curl/curl.h>
+#include <libxml/tree.h>
+#include <libxml/parser.h>
 
 static int 
 nsp_feed_load_feed_items_callback(void *user_data, int argc, char **argv, char ** azColName)
@@ -59,7 +58,9 @@ nsp_feed_load_feeds_callback(void *user_data, int argc, char **argv, char ** azC
 	f->id = atoi(argv[0]);
 	f->title = g_strdup(argv[1]);
 	f->url = g_strdup(argv[2]);
-	f->description = g_strdup(argv[3]);
+	f->site_url = g_strdup(argv[3]);
+	f->description = g_strdup(argv[4]);
+	f->icon = gdk_pixbuf_new_from_file(g_build_filename( g_get_user_data_dir(), PACKAGE, "/icons/", argv[0], NULL), NULL);
 	
 	*feeds = g_list_prepend(*feeds, (gpointer) f);
 	
@@ -87,33 +88,6 @@ nsp_feed_sort_date (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointe
 	return t_a - t_b;
 }
 
-NspFeedItem *
-nsp_feed_item_new()
-{
-	NspFeedItem * item = malloc(sizeof(NspFeedItem));
-	assert(item != NULL);
-	
-	item->id = item->feed_id = 0;
-	item->status = NSP_FEED_ITEM_UNREAD;
-	item->title = item->link = item->description = NULL;
-	item->pubdate = NULL;
-	
-	return item;
-}
-
-void
-nsp_feed_item_free(NspFeedItem * item)
-{
-	if ( item == NULL) {
-		return;
-	}
-	
-	free(item->title);
-	free(item->link);
-	free(item->description);
-	free(item->pubdate);
-}
-
 NspFeed * 
 nsp_feed_new()
 {
@@ -122,11 +96,13 @@ nsp_feed_new()
 	
 	feed->type = NSP_FEED_UNKNOWN;
 	feed->items = NULL;
-	feed->title = feed->url = feed->description = NULL;
+	feed->title = feed->url = feed->site_url = feed->description = NULL;
 	feed->id = 0;
 	feed->unread_items = 0;
 	feed->items_store = nsp_feed_item_list_get_model();
 	feed->items_sorter = gtk_tree_model_sort_new_with_model(GTK_TREE_MODEL(feed->items_store));
+	feed->mutex = g_mutex_new();
+	feed->icon = NULL;
 	
 	gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (feed->items_sorter), ITEM_LIST_COL_DATE, GTK_SORT_DESCENDING);
 	gtk_tree_sortable_set_sort_func(GTK_TREE_SORTABLE (feed->items_sorter), ITEM_LIST_COL_DATE, (GtkTreeIterCompareFunc)nsp_feed_sort_date, NULL, NULL);
@@ -165,7 +141,9 @@ nsp_feed_free (NspFeed *feed)
 	
 	free(feed->title);
 	free(feed->url);
+	free(feed->site_url);
 	free(feed->description);
+	g_mutex_free(feed->mutex);
 }
 
 int
@@ -200,16 +178,20 @@ nsp_feed_update_items(NspFeed *feed)
 		return 1;
 	}
 	
+	g_mutex_lock(feed->mutex);
+	
 	nsp_feed_clear_items(feed);
 	nsp_feed_parse(xml_doc, feed);
 	
 	xmlFreeDoc(xml_doc);
 	nsp_net_free(data);
 	
+	
 	if ( feed->id != 0 ) {
 		nsp_feed_save_to_db(feed);
 		nsp_feed_load_items_from_db(feed);
 	}
+	g_mutex_unlock(feed->mutex);
 	
 	return 0;
 }
@@ -240,7 +222,7 @@ nsp_feed_update_unread_count(NspFeed *feed)
 	int stat;
 	int count;
 	
-	char *query = sqlite3_mprintf("SELECT COUNT(1) FROM nsp_feed f LEFT JOIN nsp_feed_item fi ON fi.feed_id = f.id WHERE f.id = %i AND fi.status = 0", feed->id);
+	char *query = sqlite3_mprintf("SELECT COUNT(1) FROM nsp_feed f LEFT JOIN nsp_feed_item fi ON fi.feed_id = f.id WHERE f.id = %i AND fi.status = 1", feed->id);
 	
 	stat = sqlite3_exec(db->db, query, nsp_db_atom_int, &count, &error);
 	sqlite3_free(query);
@@ -297,7 +279,7 @@ nsp_feed_load_feeds_from_db()
 	GList *feed_list = NULL;
 	int stat;
 	
-	stat = sqlite3_exec(db->db, "SELECT id, title, url, description FROM nsp_feed", nsp_feed_load_feeds_callback, &feed_list, &error);
+	stat = sqlite3_exec(db->db, "SELECT id, title, url, site_url, description FROM nsp_feed ORDER BY id DESC", nsp_feed_load_feeds_callback, &feed_list, &error);
 	if ( stat != SQLITE_OK ) {
 		if ( error == NULL) {
 			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
@@ -330,68 +312,6 @@ nsp_feed_load_feeds_with_items_from_db()
 }
 
 int
-nsp_feed_item_save_to_db(NspFeedItem *feed_item) 
-{
-	NspDb *db = nsp_db_get();
-	char *query = NULL;
-	char *error = NULL;
-	int stat;
-	
-	
-	time_t date = 0;
-	if ( feed_item->pubdate ) {
-		date = mktime(feed_item->pubdate);
-	}
-	
-	nsp_db_transaction_begin(db);
-	
-	if ( feed_item->id != 0 ) {
-		query = sqlite3_mprintf(
-				"UPDATE nsp_feed_item SET title = '%q', url = '%q', description = '%q', date = %i, status = %i WHERE id = %i", 
-				feed_item->title, 
-				feed_item->link, 
-				feed_item->description, 
-				date, 
-				feed_item->status, 
-				feed_item->id
-			);
-	} else {
-		assert(feed_item->feed_id != 0);
-		query = sqlite3_mprintf(
-				"INSERT OR IGNORE INTO nsp_feed_item (id, feed_id, title, url, description, date, status) VALUES (NULL, %i, '%q', '%q', '%q', %i, %i)", 
-				feed_item->feed_id, 
-				feed_item->title, 
-				feed_item->link, 
-				feed_item->description, 
-				date, 
-				feed_item->status
-			);
-	}
-	
-	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
-	sqlite3_free(query);
-	
-	nsp_db_transaction_end(db);
-	
-	if ( stat != SQLITE_OK ) {
-		if ( error == NULL) {
-			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
-		} else {
-			g_warning("Error: %s\n", error);
-			sqlite3_free(error);
-		}
-
-		return 1;
-	}
-	
-	if ( feed_item->id == 0 ) {
-		feed_item->id = sqlite3_last_insert_rowid(db->db);
-	}
-	
-	return 0;
-}
-
-int
 nsp_feed_save_to_db(NspFeed *feed)
 {
 	NspDb *db = nsp_db_get();
@@ -401,7 +321,7 @@ nsp_feed_save_to_db(NspFeed *feed)
 	char *feed_id = g_strdup_printf("%i", feed->id);
 	int stat;
 	
-	char *query = sqlite3_mprintf("INSERT %s INTO nsp_feed (id, title, url, description) VALUES (%s, '%q', '%q', '%q')", ((feed->id==0) ? "" : "OR REPLACE " ), ((feed->id==0) ? "NULL" : feed_id),feed->title, feed->url, feed->description);
+	char *query = sqlite3_mprintf("INSERT %s INTO nsp_feed (id, title, url, site_url, description) VALUES (%s, '%q', '%q', '%q', '%q')", ((feed->id==0) ? "" : "OR REPLACE " ), ((feed->id==0) ? "NULL" : feed_id),feed->title, feed->url, feed->site_url, feed->description);
 	
 	nsp_db_transaction_begin(db);
 	
@@ -444,27 +364,19 @@ nsp_feed_save_to_db(NspFeed *feed)
 	
 }
 
-
-int 
-nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item)
-{	
+static void 
+nsp_feed_delete_item_from_db(void *user_data)
+{
+	int *feed_item_id = (int*)user_data;
 	NspDb *db = nsp_db_get();
-	NspFeedItem *tmp_feed_item = NULL;
-	GtkTreeIter iter;
-	gboolean valid;
 	char *query = NULL;
 	char *error = NULL;
 	int stat;
-	
-	assert(feed != NULL && feed_item != NULL);
-	
-	if ( feed_item->id == 0 ) {
-		return 1;
-	}
+	assert(feed_item_id != NULL);
 	
 	query = sqlite3_mprintf(
 			"DELETE FROM nsp_feed_item WHERE id = %i", 
-			feed_item->id
+			*feed_item_id
 		);
 	
 	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
@@ -479,10 +391,23 @@ nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item)
 			g_warning("Error: %s\n", error);
 			sqlite3_free(error);
 		}
-
-		return 1;
 	}
+}
+
+int 
+nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item)
+{	
+	NspFeedItem *tmp_feed_item = NULL;
+	NspApp *app = nsp_app_get();
+	GtkTreeIter iter;
+	gboolean valid;
+	int *feed_item_id = malloc(sizeof(int));
+	*feed_item_id = feed_item->id;
 	
+	feed_item->status |= NSP_FEED_ITEM_DELETED;
+	nsp_jobs_queue(app->jobs, nsp_job_new( (NspCallback*)nsp_feed_delete_item_from_db, feed_item_id ));
+	
+	g_mutex_lock(feed->mutex);
 	valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL(feed->items_store), &iter);
 	while (valid)
 	{
@@ -501,6 +426,124 @@ nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item)
 	if ( valid ) {
 		gtk_tree_store_remove(feed->items_store, &iter);
 	}
+	g_mutex_unlock(feed->mutex);
+	
+	return 0;
+}
+
+static size_t 
+nsp_feed_download_icon_cb (char *buffer, size_t size, size_t nitems, void *data)
+{
+	GdkPixbufLoader *loader = (GdkPixbufLoader *) data;
+	if (gdk_pixbuf_loader_write (loader, (guchar *) buffer, size * nitems, NULL))
+		return size * nitems;
+	return 0;
+}
+
+int
+nsp_feed_update_icon(NspFeed *feed)
+{
+	NspNetData *data;
+	char *icon_url = NULL;
+	char *icon_path = NULL;
+	GRegex *regex;
+	GMatchInfo *match_info;
+	CURL *curl;
+	CURLcode result;
+	GdkPixbufLoader *loader = NULL;
+	GError *error = NULL;
+	char *feed_id_string = NULL;
+	
+	/* Download web page */
+	data = nsp_net_new();
+	if ( nsp_net_load_url(feed->site_url, data) ) {
+		g_warning("ERROR: %s\n", data->error);
+		nsp_net_free(data);
+		return 1;
+	}
+	
+	/* Find <link> tag reffering to the icon */
+	regex = g_regex_new ("<link[^>]*?rel=[\"'](icon|shortcut icon)[\"'][^>]*?href=[\"'](?<href>.*?)[\"'][^>]*?>", 0, 0, NULL);
+	g_regex_match (regex, data->content, 0, &match_info);
+	
+	while (g_match_info_matches (match_info)) {
+		gchar *word = g_match_info_fetch_named (match_info, "href");
+		if ( !g_str_has_prefix(word, "http") ) {
+			icon_url = g_strdup_printf("%s/%s", feed->site_url, word);
+			g_free(word);
+			break;
+		}
+		g_free (word);
+		g_match_info_next (match_info, NULL);
+	}
+	g_match_info_free (match_info);
+	g_regex_unref (regex);
+	nsp_net_free(data);
+	
+	/* If no image is found - use home url + /favicon.ico */
+	if ( icon_url == NULL ) {
+		regex = g_regex_new ("^(?<hostname>https?://[^/]*)", 0, 0, NULL);
+		g_regex_match (regex, feed->site_url, 0, &match_info);
+		
+		if (g_match_info_matches (match_info)) {
+			gchar *word = g_match_info_fetch_named (match_info, "hostname");
+			icon_url = g_strdup_printf("%s/favicon.ico", word);
+			g_free (word);
+		}
+		
+		g_match_info_free (match_info);
+		g_regex_unref (regex);
+	}
+	
+	/* Store the image to a GtkPixbufLoader */
+	loader = gdk_pixbuf_loader_new();
+	curl = curl_easy_init();
+	curl_easy_setopt (curl, CURLOPT_URL, icon_url);
+	curl_easy_setopt (curl, CURLOPT_HEADER, 0);
+	curl_easy_setopt (curl, CURLOPT_FOLLOWLOCATION, 1);
+	curl_easy_setopt (curl, CURLOPT_WRITEFUNCTION, nsp_feed_download_icon_cb );
+	curl_easy_setopt (curl, CURLOPT_WRITEDATA, loader);
+	curl_easy_setopt (curl, CURLOPT_TIMEOUT, 60);
+	curl_easy_setopt (curl, CURLOPT_NOSIGNAL, 1);
+	
+	result = curl_easy_perform (curl);
+	curl_easy_cleanup(curl);
+	g_free(icon_url);
+	
+	if ( result != 0) {
+		return 1;
+	}
+	
+	gdk_pixbuf_loader_close (loader, NULL);
+	feed->icon = gdk_pixbuf_loader_get_pixbuf (loader);
+	
+	if ( !GDK_IS_PIXBUF(feed->icon) ) {
+		feed->icon = NULL;
+		return 1;
+	}
+	
+	/* Resize and save the image */
+	if (gdk_pixbuf_get_width (feed->icon) != 16 || gdk_pixbuf_get_height (feed->icon) != 16) {
+		GdkPixbuf *old = feed->icon;
+		feed->icon = gdk_pixbuf_scale_simple (old, 16, 16, GDK_INTERP_BILINEAR);
+		g_object_unref (G_OBJECT (old));
+	}
+	
+	feed_id_string = malloc(sizeof(char)*9);
+	g_snprintf (feed_id_string, 9, "%i", feed->id);
+	
+	icon_path = g_build_filename( g_get_user_data_dir(), PACKAGE, "/icons", NULL);
+	g_mkdir_with_parents(icon_path, 0700);
+	
+	icon_path = g_build_filename( icon_path, "/", feed_id_string, NULL);
+	gdk_pixbuf_save(feed->icon, icon_path, "png", &error, NULL);
+	
+	if ( error != NULL ) {
+		g_warning("ERROR: %s\n", error->message);
+		g_error_free(error);
+	}
+	g_free(icon_path);
+	free(feed_id_string);
 	
 	return 0;
 }

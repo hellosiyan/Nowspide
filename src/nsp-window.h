@@ -22,6 +22,7 @@
 #define __NSP_WINDOW_H_ 1
 
 #include <gtk/gtk.h>
+
 #include "nsp-typedefs.h"
 #include "nsp-feed-list.h"
 #include "nsp-feed-item-list.h"
@@ -40,6 +41,7 @@ struct _NspWindow
 	NspCallback *on_feed_update;
 	NspCallback *on_feed_add;
 	NspCallback *on_feed_item_delete;
+	NspCallback *on_feed_item_toggle_read;
 };
 
 NspWindow * nsp_window_new();

@@ -21,12 +21,14 @@
 #define __NSP_FEED_LIST_H__ 1
 
 #include <gtk/gtk.h>
+
 #include "nsp-feed.h"
 
 enum
 {
 	LIST_COL_NAME = 0,
 	LIST_COL_FEED_REF,
+	LIST_COL_ICON,
 	LIST_COL_NUM
 };
 
@@ -37,11 +39,13 @@ struct _NspFeedList {
 	GtkWidget *list_view;
 	
 	NspCallback *on_select;
+	GdkPixbuf *icon_load;
 };
 
 NspFeedList * nsp_feed_list_new();
 
-void nsp_feed_list_add(NspFeedList *list, NspFeed *feed);
+GtkTreeIter nsp_feed_list_add(NspFeedList *list, NspFeed *feed);
+void nsp_feed_list_remove(NspFeedList *list, NspFeed *feed);
 void nsp_feed_list_update_entry(NspFeedList *list, NspFeed *feed);
 gboolean nsp_feed_list_search(NspFeedList *list, NspFeed *feed, GtkTreeIter *it);
 
