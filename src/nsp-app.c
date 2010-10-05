@@ -173,8 +173,6 @@ nsp_app_feed_add (void* user_data)
 	/* Create the new feed, populate it and add it to the list */
 	feed = nsp_feed_new();
 	feed->url = url;
-	feed->description = malloc(sizeof(char));
-	feed->description = '\0';
 	feed->title = malloc(sizeof(char)*(strlen(new_feed_title) + 1));
 	memcpy(feed->title, new_feed_title, sizeof(char)*(strlen(new_feed_title)+1));
 	

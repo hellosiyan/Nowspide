@@ -162,9 +162,15 @@ nsp_feed_list_update_entry(NspFeedList *list, NspFeed *feed)
 	}
 	
 	if ( feed->unread_items > 0 ) {
-		col_name = g_strdup_printf("<b>%s (%i)</b>\n<small>%s</small>", feed->title, feed->unread_items, feed->description);
+		col_name = g_strdup_printf("<b>%s (%i)</b>", feed->title, feed->unread_items);
 	} else {
-		col_name = g_strdup_printf("%s\n<small>%s</small>", feed->title, feed->description);
+		col_name = g_strdup_printf("%s", feed->title);
+	}
+	
+	if ( feed->description != NULL && *(feed->description) != '\0' ) {
+		char *old_col_name = col_name;
+		col_name = g_strdup_printf("%s\n<small>%s</small>", col_name, feed->description);
+		g_free(old_col_name);
 	}
 	
 	
