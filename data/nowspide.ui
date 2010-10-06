@@ -164,6 +164,7 @@
                         <property name="can_focus">True</property>
                         <property name="hscrollbar_policy">automatic</property>
                         <property name="vscrollbar_policy">automatic</property>
+	                    <property name="shadow_type">in</property>
                         <child>
                           <placeholder/>
                         </child>
@@ -181,16 +182,6 @@
                           <object class="GtkHBox" id="hbox4">
                             <property name="visible">True</property>
                             <child>
-                              <object class="GtkLabel" id="feed_item_label">
-                                <property name="visible">True</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">label</property>
-                              </object>
-                              <packing>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
                               <object class="GtkToggleButton" id="feed_item_view_switch">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
@@ -200,33 +191,24 @@
                                 <child>
                                   <object class="GtkImage" id="image5">
                                     <property name="visible">True</property>
-                                    <property name="icon_name">html</property>
+                                    <property name="stock">gtk-connect</property>
                                   </object>
                                 </child>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
                                 <property name="fill">False</property>
-                                <property name="position">1</property>
+                                <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkToggleButton" id="togglebutton1">
+                              <object class="GtkLabel" id="feed_item_label">
                                 <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="relief">none</property>
-                                <property name="use_underline">True</property>
-                                <child>
-                                  <object class="GtkImage" id="image2">
-                                    <property name="visible">True</property>
-                                    <property name="icon_name">emblem-important</property>
-                                  </object>
-                                </child>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">Feed Name here ...</property>
                               </object>
                               <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
+                                <property name="padding">10</property>
                                 <property name="position">2</property>
                               </packing>
                             </child>
@@ -234,7 +216,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
-                            <property name="position">0</property>
+                            <property name="position">1</property>
                           </packing>
                         </child>
                         <child>
@@ -243,6 +225,7 @@
                             <property name="can_focus">True</property>
                             <property name="hscrollbar_policy">automatic</property>
                             <property name="vscrollbar_policy">automatic</property>
+		                    <property name="shadow_type">in</property>
                             <child>
                               <placeholder/>
                             </child>
