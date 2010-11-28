@@ -45,6 +45,7 @@ static void nsp_window_cmd_item_delete (GtkAction *action, gpointer user_data);
 static gboolean nsp_window_cmd_popup_feed_item_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data);
 static void nsp_window_cmd_main_menu_toggle (GtkToggleButton *button, gpointer *user_data);
 static void nsp_window_cmd_main_menu_hidden (GtkWidget *widget, gpointer user_data);
+static void nsp_window_cmd_switch_view (GtkToggleButton *button, gpointer *user_data);
 
 const char *xml_main_menu = 
 "<?xml version=\"1.0\"?><interface> <requires lib=\"gtk+\" version=\"2.16\"/>"
@@ -176,8 +177,12 @@ nsp_window_init(NspWindow *win, GError **error)
 	
 	gtk_widget_set_size_request(GTK_WIDGET (gtk_builder_get_object (win->builder, "scroll_win")), 200, -1);
 	
-	win->web_view = webkit_web_view_new ();
-	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "feed_item_view")), win->web_view);
+	win->webview = nsp_webview_new ();
+	win->webview->btn_view_switch = GTK_WIDGET(gtk_builder_get_object(win->builder, "feed_item_view_switch"));
+	win->webview->btn_back = GTK_WIDGET(gtk_builder_get_object(win->builder, "feed_item_web_back"));
+	win->webview->spinner = GTK_WIDGET(gtk_builder_get_object(win->builder, "feed_item_spin"));
+	nsp_webview_init(win->webview);
+	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "feed_item_view")), GTK_WIDGET(win->webview->webkit_webview));
 	
 	gtk_menu_attach_to_widget(GTK_MENU(gtk_builder_get_object(win->builder, "menubar1")), GTK_WIDGET(gtk_builder_get_object(win->builder, "btn_main_menu")), NULL);
 	
@@ -189,10 +194,12 @@ nsp_window_init(NspWindow *win, GError **error)
 	g_signal_connect(gtk_builder_get_object(win->builder, "menubar1"), "hide", G_CALLBACK(nsp_window_cmd_main_menu_hidden), win);
 	g_signal_connect(win->feed_item_list, "button-release-event", G_CALLBACK(nsp_window_cmd_popup_feed_item_menu), win);
 	
+	g_signal_connect(win->webview->btn_view_switch, "toggled", G_CALLBACK(nsp_window_cmd_switch_view), win);
+	
 	/* Show/hide specific widgets */
 	gtk_widget_show(win->feed_list->list_view);
 	gtk_widget_show(win->feed_item_list);
-	gtk_widget_show(win->web_view);
+	gtk_widget_show(GTK_WIDGET(win->webview->webkit_webview));
 	
 	return 0;
 }
@@ -330,6 +337,24 @@ nsp_window_cmd_main_menu_toggle (GtkToggleButton *button, gpointer *user_data)
 	}
 	gtk_menu_popup(GTK_MENU(user_data), NULL, NULL, nsp_window_main_menu_position, button, 0, gtk_get_current_event_time());
 	return;
+}
+
+static void
+nsp_window_cmd_switch_view (GtkToggleButton *button, gpointer *user_data)
+{
+	NspApp *app = nsp_app_get();
+	gboolean pressed;
+	if ( app->current_feed_item == NULL ) {
+		return;
+	}
+	
+	pressed = gtk_toggle_button_get_active(button);
+	
+	if ( pressed && app->window->webview->status == NSP_WEBVIEW_OFFLINE) {
+		nsp_webview_load_url(app->window->webview, app->current_feed_item->link);
+	} else if( !pressed && app->window->webview->status == NSP_WEBVIEW_ONLINE) {
+		nsp_webview_load_string (app->window->webview, app->current_feed_item->description);
+	}
 }
 
 static void

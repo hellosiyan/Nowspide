@@ -8,6 +8,8 @@ nowspide_SOURCES =      \
 	nsp-net.h				\
 	nsp-window.c			\
 	nsp-window.h			\
+	nsp-webview.c			\
+	nsp-webview.h			\
 	nsp-feed.c				\
 	nsp-feed.h				\
 	nsp-feed-item.c			\

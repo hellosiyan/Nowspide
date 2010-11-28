@@ -18,36 +18,41 @@
  */
 
 
-#ifndef __NSP_WINDOW_H_
-#define __NSP_WINDOW_H_ 1
+#ifndef __NSP_WEBVIEW_H_
+#define __NSP_WEBVIEW_H_ 1
 
 #include <gtk/gtk.h>
+#include <webkit/webkit.h>
+#include <JavaScriptCore/JavaScript.h>
 
-#include "nsp-webview.h"
 #include "nsp-typedefs.h"
 #include "nsp-feed-list.h"
 #include "nsp-feed-item-list.h"
 
-typedef struct _NspWindow NspWindow;
+typedef struct _NspWebview NspWebview;
 
-struct _NspWindow
+typedef enum {
+	NSP_WEBVIEW_OFFLINE,
+	NSP_WEBVIEW_ONLINE
+} NspWebviewStatus;
+
+struct _NspWebview
 {
-	GtkBuilder *builder;
-	GtkWidget *window;
-	NspFeedList *feed_list;
-	GtkWidget *feed_item_list;
-    GtkWidget *feed_item_menu;
-    NspWebview *webview;
+	WebKitWebView* webkit_webview;
 	
-	NspCallback *on_feed_update;
-	NspCallback *on_feed_add;
-	NspCallback *on_feed_item_delete;
-	NspCallback *on_feed_item_toggle_read;
+	NspWebviewStatus status;
+	
+	GtkWidget *btn_view_switch;
+	GtkWidget *btn_back;
+	GtkWidget *spinner;
 };
 
-NspWindow * nsp_window_new();
+NspWebview * nsp_webview_new();
 
-void	nsp_window_free 		(NspWindow *window);
-int 	nsp_window_init (NspWindow *window, GError **error);
+int 	nsp_webview_init (NspWebview *webview);
 
-#endif /* __NSP_WINDOW_H_ */
+void nsp_webview_load_string(NspWebview *webview, const char *string);
+void nsp_webview_load_url(NspWebview *webview, const char *url);
+
+
+#endif /* __NSP_WEBVIEW_H_ */

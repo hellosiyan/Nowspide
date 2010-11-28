@@ -191,7 +191,7 @@
                                 <child>
                                   <object class="GtkImage" id="image5">
                                     <property name="visible">True</property>
-                                    <property name="stock">gtk-connect</property>
+                                    <property name="stock">gtk-disconnect</property>
                                   </object>
                                 </child>
                               </object>
@@ -202,14 +202,66 @@
                               </packing>
                             </child>
                             <child>
+                              <object class="GtkButton" id="feed_item_web_back">
+                                <property name="visible">False</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="relief">none</property>
+                                <property name="image_position">bottom</property>
+                                <child>
+                                  <object class="GtkImage" id="image6">
+                                    <property name="visible">True</property>
+                                    <property name="stock">gtk-go-back</property>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkSpinner" id="feed_item_spin">
+                                <property name="visible">False</property>
+                                <property name="active">True</property>
+                              </object>
+                              <packing>
+                                <property name="padding">5</property>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">2</property>
+                              </packing>
+                            </child>
+                            <child>
                               <object class="GtkLabel" id="feed_item_label">
                                 <property name="visible">True</property>
-                                <property name="xalign">0</property>
+                                <property name="xalign">0.5</property>
                                 <property name="label" translatable="yes">Feed Name here ...</property>
                               </object>
                               <packing>
                                 <property name="padding">10</property>
-                                <property name="position">2</property>
+                                <property name="position">3</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="feed_item_fullscreen">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="relief">none</property>
+                                <property name="image_position">bottom</property>
+                                <child>
+                                  <object class="GtkImage" id="image7">
+                                    <property name="visible">True</property>
+                                    <property name="stock">gtk-fullscreen</property>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">4</property>
                               </packing>
                             </child>
                           </object>

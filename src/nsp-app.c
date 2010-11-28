@@ -35,11 +35,11 @@ nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
 	if ( gtk_tree_selection_get_selected(selection, &model, &iter) ) {
 		gtk_tree_model_get(model, &iter, ITEM_LIST_COL_ITEM_REF, &feed_item, -1);
 	}
-	app->current_feed_item = feed_item;
 	
 	if ( feed_item == NULL ) {
 		return;
 	}
+	app->current_feed_item = feed_item;
 	
 	g_mutex_lock(app->current_feed->mutex);
 	gtk_tree_model_sort_convert_iter_to_child_iter(GTK_TREE_MODEL_SORT(app->current_feed->items_sorter), &child_iter, &iter);
@@ -54,8 +54,8 @@ nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
 	}
 	g_mutex_unlock(app->current_feed->mutex);
 	
-	//webkit_web_view_load_uri(WEBKIT_WEB_VIEW (app->window->web_view), feed_item->link);
-	webkit_web_view_load_string (WEBKIT_WEB_VIEW (app->window->web_view), feed_item->description, "text/html", "UTF-8", "");
+	nsp_webview_load_string (app->window->webview, feed_item->description);
+	gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(app->window->builder, "feed_item_label")), feed_item->title);
 	
 	return;
 }
@@ -159,7 +159,6 @@ nsp_app_feed_list_select (void* user_data)
 	GtkWidget *feed_item_header;
 	
 	app->current_feed = feed;
-	app->current_feed_item = NULL;
 	
 	gtk_tree_view_set_model(GTK_TREE_VIEW(app->window->feed_item_list), nsp_feed_get_items_model(feed));
 	
