@@ -74,6 +74,9 @@ void nsp_feed_update_unread_count(NspFeed *feed);
 void nsp_feed_update_model(NspFeed *feed);
 int nsp_feed_update_icon(NspFeed *feed);
 
+void nsp_feed_read_all(NspFeed *feed);
+int nsp_feed_delete(NspFeed *feed);
+
 int nsp_feed_delete_item(NspFeed *feed, NspFeedItem *feed_item);
 
 int nsp_feed_clear_items(NspFeed *feed);

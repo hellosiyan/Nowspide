@@ -43,9 +43,11 @@ static void nsp_window_cmd_update_feed (GtkWidget *button, gpointer user_data);
 static void nsp_window_cmd_item_toggle_status (GtkAction *action, gpointer user_data);
 static void nsp_window_cmd_item_delete (GtkAction *action, gpointer user_data);
 static gboolean nsp_window_cmd_popup_feed_item_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data);
+static gboolean nsp_window_cmd_popup_feed_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data);
 static void nsp_window_cmd_main_menu_toggle (GtkToggleButton *button, gpointer *user_data);
 static void nsp_window_cmd_main_menu_hidden (GtkWidget *widget, gpointer user_data);
 static void nsp_window_cmd_switch_view (GtkToggleButton *button, gpointer *user_data);
+static void nsp_window_cmd_feed_properties (GtkAction *action, gpointer user_data);
 
 const char *xml_main_menu = 
 "<?xml version=\"1.0\"?><interface> <requires lib=\"gtk+\" version=\"2.16\"/>"
@@ -71,8 +73,21 @@ const char *xml_main_menu =
 		    "<separator/>"
 		  	"<menuitem action=\"ItemDelete\"/>"
 		"</popup>"
+		"<popup name=\"feed_menu\">"
+		  	"<menuitem action=\"FeedSingleUpdate\"/>"
+		  	"<menuitem action=\"FeedSingleMarkRead\"/>"
+		    "<separator/>"
+		  	"<menuitem action=\"FeedSingleDelete\"/>"
+		    "<separator/>"
+		  	"<menuitem action=\"FeedSingleProperties\"/>"
+		"</popup>"
 	"</ui>"
 "</object></interface>";
+
+const char *xml_feed_menu = 
+"<?xml version=\"1.0\"?><interface> <requires lib=\"gtk+\" version=\"2.16\"/>"
+	"<object class=\"GtkMenu\" id=\"feed_menu\" constructor=\"uiman\" />"
+"</interface>";
 
 const char *xml_feed_item_menu = 
 "<?xml version=\"1.0\"?><interface> <requires lib=\"gtk+\" version=\"2.16\"/>"
@@ -93,6 +108,17 @@ static const GtkActionEntry action_entries_window[] = {
       "About this application", G_CALLBACK(nsp_window_cmd_about) }
 };
 
+static const GtkActionEntry action_entries_feed[] = {
+    { "FeedSingleUpdate", GTK_STOCK_REFRESH, "Update", NULL,
+      "Update Feed", G_CALLBACK(nsp_app_cmd_feed_update) },
+    { "FeedSingleMarkRead", GTK_STOCK_APPLY, "Mark All As Read", NULL,
+      "Mark all feed items as read", G_CALLBACK(nsp_app_cmd_feed_read_all) },
+    { "FeedSingleDelete", GTK_STOCK_DELETE, "Delete", NULL,
+      "Delete the feed and all related items", G_CALLBACK(nsp_app_cmd_feed_delete) },
+    { "FeedSingleProperties", GTK_STOCK_PROPERTIES, "Properties...", NULL,
+      "Feed properties", G_CALLBACK(nsp_window_cmd_feed_properties) }
+};
+
 static const GtkActionEntry action_entries_feed_item[] = {
     { "ItemToggleStatus", GTK_STOCK_APPLY, "Mark as _Unread", NULL,
       "Toggle Read Status", G_CALLBACK(nsp_window_cmd_item_toggle_status) },
@@ -109,8 +135,8 @@ nsp_window_new()
 	win->builder = gtk_builder_new();
 	win->feed_list = nsp_feed_list_new();
 	win->feed_item_list = nsp_feed_item_list_get_view();
-	win->on_feed_add = win->on_feed_update = win->on_feed_item_delete = win->on_feed_item_toggle_read = NULL;
-	win->feed_item_menu = NULL;
+	win->on_feeds_add = win->on_feeds_update = win->on_feed_item_delete = win->on_feed_item_toggle_read = NULL;
+	win->feed_item_menu = win->feed_menu = NULL;
 	
 	
 	return win;
@@ -151,12 +177,19 @@ nsp_window_init(NspWindow *win, GError **error)
                                   G_N_ELEMENTS (action_entries_feed_item),
                                   NULL);
 	
+    gtk_action_group_add_actions (feed_items_agroup,
+                                  action_entries_feed,
+                                  G_N_ELEMENTS (action_entries_feed),
+                                  NULL);
+	
 	
 	gtk_builder_add_from_file(win->builder, NSP_UI_FILE, error);
 	gtk_builder_add_from_string(win->builder, xml_feed_item_menu, -1, NULL);
+	gtk_builder_add_from_string(win->builder, xml_feed_menu, -1, NULL);
 	
 	
 	win->feed_item_menu = GTK_WIDGET(gtk_builder_get_object(win->builder, "feed_item_menu"));
+	win->feed_menu = GTK_WIDGET(gtk_builder_get_object(win->builder, "feed_menu"));
 	
     if (error != NULL)
     {
@@ -193,6 +226,7 @@ nsp_window_init(NspWindow *win, GError **error)
 						gtk_builder_get_object(win->builder, "menubar1"));
 	g_signal_connect(gtk_builder_get_object(win->builder, "menubar1"), "hide", G_CALLBACK(nsp_window_cmd_main_menu_hidden), win);
 	g_signal_connect(win->feed_item_list, "button-release-event", G_CALLBACK(nsp_window_cmd_popup_feed_item_menu), win);
+	g_signal_connect(win->feed_list->list_view, "button-release-event", G_CALLBACK(nsp_window_cmd_popup_feed_menu), win);
 	
 	g_signal_connect(win->webview->btn_view_switch, "toggled", G_CALLBACK(nsp_window_cmd_switch_view), win);
 	
@@ -264,8 +298,8 @@ nsp_window_cmd_add_feed(GtkButton *button, gpointer user_data)
 	gtk_dialog_add_buttons(dialog, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_ADD, GTK_RESPONSE_OK, NULL);
 	gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
 	
-	if (gtk_dialog_run(dialog) == GTK_RESPONSE_OK && app->window->on_feed_add != NULL) {
-		nsp_jobs_queue(app->jobs, nsp_job_new(app->window->on_feed_add, (void*)gtk_entry_get_text(GTK_ENTRY(input_area))));
+	if (gtk_dialog_run(dialog) == GTK_RESPONSE_OK && app->window->on_feeds_add != NULL) {
+		nsp_jobs_queue(app->jobs, nsp_job_new(app->window->on_feeds_add, (void*)gtk_entry_get_text(GTK_ENTRY(input_area))));
 	}
 	
 	gtk_widget_destroy(GTK_WIDGET(dialog));
@@ -277,8 +311,8 @@ nsp_window_cmd_update_feed(GtkWidget *button, gpointer user_data)
 {
 	NspApp *app = nsp_app_get();
 	
-	if ( app->window->on_feed_update != NULL) {
-		app->window->on_feed_update(NULL);
+	if ( app->window->on_feeds_update != NULL) {
+		app->window->on_feeds_update(NULL);
 	}
 }
 
@@ -316,6 +350,21 @@ nsp_window_cmd_popup_feed_item_menu (GtkWidget *widget, GdkEventButton *event, g
 	
 	return FALSE;
 }
+
+static gboolean
+nsp_window_cmd_popup_feed_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data)  
+{
+	NspApp *app = nsp_app_get();
+	if ( event->button != 3 || app->current_feed == NULL || !gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(widget), event->x, event->y, NULL, NULL, NULL, NULL) )
+		return FALSE;
+	
+    gtk_menu_popup(GTK_MENU(((NspWindow*)user_data)->feed_menu),
+            NULL, NULL, NULL, NULL, event->button,
+            gtk_get_current_event_time());
+	
+	return FALSE;
+}
+
 
 static void
 nsp_window_main_menu_position (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer user_data)
@@ -363,4 +412,11 @@ nsp_window_cmd_main_menu_hidden (GtkWidget *widget, gpointer user_data)
 	NspWindow *win = (NspWindow*)user_data;
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(gtk_builder_get_object(win->builder, "btn_main_menu")), FALSE);
 }
+
+static void 
+nsp_window_cmd_feed_properties (GtkAction *action, gpointer user_data)
+{
+
+}
+
 

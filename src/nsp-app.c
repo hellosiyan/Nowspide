@@ -85,6 +85,14 @@ static void
 nsp_app_feed_update(void* user_data)
 {
 	NspApp *app = nsp_app_get();
+	
+	nsp_jobs_queue(app->jobs, nsp_job_new((NspCallback*)nsp_app_feed_update_real, user_data));
+}
+
+static void 
+nsp_app_feeds_update(void* user_data)
+{
+	NspApp *app = nsp_app_get();
 	GList *feeds = app->feeds;
 	
 	while ( feeds != NULL ) {
@@ -239,8 +247,8 @@ nsp_app_new ()
 	nsp_window_init(app->window, NULL);
 	nsp_app_window_init(app);
 	
-	app->window->on_feed_add = nsp_app_feed_add;
-	app->window->on_feed_update = nsp_app_feed_update;
+	app->window->on_feeds_add = nsp_app_feed_add;
+	app->window->on_feeds_update = nsp_app_feeds_update;
 	app->window->on_feed_item_delete = nsp_app_feed_item_delete;
 	app->window->on_feed_item_toggle_read = nsp_app_feed_item_toggle_read;
 	app->window->feed_list->on_select = nsp_app_feed_list_select;
@@ -275,4 +283,80 @@ nsp_app_free(NspApp *app)
 	nsp_db_close(app->db);
 }
 
+void 
+nsp_app_cmd_feed_read_all (GtkAction *action, gpointer user_data)
+{
+	NspApp *app = nsp_app_get();
+	NspFeed *feed = (NspFeed*)user_data;
+	
+	if ( feed == NULL ) {
+		feed = app->current_feed;
+	}
+	
+	g_mutex_lock(feed->mutex);
+	
+	nsp_feed_read_all(feed);
+	feed->unread_items = 0;
+	nsp_feed_load_items_from_db(feed);
+	
+	g_mutex_unlock(feed->mutex);
+	
+	nsp_feed_update_model(feed);
+	nsp_feed_list_update_entry(app->window->feed_list, feed);
+}
+
+void 
+nsp_app_cmd_feed_update (GtkAction *action, gpointer user_data)
+{
+	NspApp *app = nsp_app_get();
+	nsp_app_feed_update(app->current_feed);
+}
+
+void 
+nsp_app_cmd_feed_delete (GtkAction *action, gpointer user_data)
+{
+	NspApp *app = nsp_app_get();
+	NspFeed *feed = (NspFeed*)user_data;
+    GtkWidget *dialog_confirm = NULL;
+    gchar *markup, *prompt, *warning;
+	
+	if ( feed == NULL ) {
+		feed = app->current_feed;
+	}
+	
+    warning = "If you delete a feed, all items will be permanently lost.";
+
+    /* I18N: The '%s' is replaced with the name of the file to be deleted. */
+    prompt = g_strdup_printf ("Are you sure you want to delete\n\"%s\"?",
+                              feed->title);
+    markup = g_strdup_printf ("<span weight=\"bold\" size=\"larger\">%s</span>\n\n%s",
+                              prompt, warning);
+
+
+    dialog_confirm = gtk_message_dialog_new(GTK_WINDOW(app->window->window),
+                                 GTK_DIALOG_MODAL,
+                                 GTK_MESSAGE_WARNING,
+                                 GTK_BUTTONS_NONE,
+                                 NULL);
+
+    gtk_message_dialog_set_markup (GTK_MESSAGE_DIALOG (dialog_confirm),
+                                   markup);
+
+    gtk_dialog_add_buttons (GTK_DIALOG (dialog_confirm),
+                            GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                            GTK_STOCK_DELETE, GTK_RESPONSE_YES,
+                            NULL);
+	
+	
+	if ( gtk_dialog_run(GTK_DIALOG(dialog_confirm)) == GTK_RESPONSE_YES ) {
+		app->feeds = g_list_remove(app->feeds, feed);
+		nsp_feed_delete(feed);
+		nsp_feed_update_model(feed);
+		nsp_feed_list_remove(app->window->feed_list, feed);
+	}
+	
+    g_free(prompt);
+    g_free(markup);
+    gtk_widget_destroy( dialog_confirm );
+}
 

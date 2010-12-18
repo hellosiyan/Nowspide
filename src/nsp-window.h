@@ -35,12 +35,13 @@ struct _NspWindow
 	GtkBuilder *builder;
 	GtkWidget *window;
 	NspFeedList *feed_list;
+    GtkWidget *feed_menu;
 	GtkWidget *feed_item_list;
     GtkWidget *feed_item_menu;
     NspWebview *webview;
 	
-	NspCallback *on_feed_update;
-	NspCallback *on_feed_add;
+	NspCallback *on_feeds_update;
+	NspCallback *on_feeds_add;
 	NspCallback *on_feed_item_delete;
 	NspCallback *on_feed_item_toggle_read;
 };

@@ -44,5 +44,8 @@ struct _NspApp {
 
 NspApp *nsp_app_get();
 
+void nsp_app_cmd_feed_update (GtkAction *action, gpointer user_data);
+void nsp_app_cmd_feed_read_all (GtkAction *action, gpointer user_data);
+void nsp_app_cmd_feed_delete (GtkAction *action, gpointer user_data);
 
 #endif /* __NSP_APP_H__ */

@@ -548,3 +548,85 @@ nsp_feed_update_icon(NspFeed *feed)
 	return 0;
 }
 
+void
+nsp_feed_read_all(NspFeed *feed)
+{
+	NspDb *db = nsp_db_get();
+	char *query = NULL;
+	char *error = NULL;
+	int stat;
+	assert(feed != NULL);
+	
+	query = sqlite3_mprintf(
+			"UPDATE nsp_feed_item SET status = 0 WHERE feed_id = %i", 
+			feed->id
+		);
+	
+	stat = sqlite3_exec(db->db, query, NULL, NULL, &error);
+	sqlite3_free(query);
+	
+	nsp_db_transaction_end(db);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+	}
+}
+
+int
+nsp_feed_delete(NspFeed *feed)
+{
+	NspDb *db = nsp_db_get();
+	char *error = NULL;
+	int stat;
+	char *query;
+	
+	/* Delete related feed items */
+	query = sqlite3_mprintf("DELETE FROM nsp_feed_item WHERE feed_id=%i", feed->id);
+	
+	nsp_feed_clear_items(feed);
+	
+	g_mutex_lock(feed->mutex);
+	
+	stat = sqlite3_exec(db->db, query, nsp_feed_load_feed_items_callback, &(feed->items), &error);
+	sqlite3_free(query);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+		
+		g_mutex_unlock(feed->mutex);
+		return 1;
+	}
+	
+	/* Delete the feed */
+	query = sqlite3_mprintf("DELETE FROM nsp_feed WHERE id=%i", feed->id);
+	
+	stat = sqlite3_exec(db->db, query, nsp_feed_load_feed_items_callback, &(feed->items), &error);
+	sqlite3_free(query);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+		
+		g_mutex_unlock(feed->mutex);
+		return 1;
+	}
+	
+	g_mutex_unlock(feed->mutex);
+	
+	return 0;
+}
+
