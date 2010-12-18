@@ -28,7 +28,7 @@
 #define ATOM_0_3_URI	"http://purl.org/atom/ns#"
 #define ATOM_1_0_URI	"http://www.w3.org/2005/Atom"
 
-static char* nsp_parser_clean_title(char*);
+static char* nsp_parser_sanitize_string(char*);
 
 static NspFeedType
 nsp_parse_feed_type(xmlNode *node)
@@ -112,7 +112,7 @@ nsp_parse_items_rss (xmlNode *root, GError **error) {
 				prop = item->children;
 				while ( prop != NULL ) {
 					if ( !xmlStrcasecmp(prop->name, (xmlChar *)"title") ) {
-						feed_item->title = nsp_parser_clean_title((char*) xmlNodeGetContent(prop));
+						feed_item->title = nsp_parser_sanitize_string((char*) xmlNodeGetContent(prop));
 					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"link") ) {
 						feed_item->link = (char*) xmlNodeGetContent(prop);
 					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"description") && feed_item->description == NULL ) {
@@ -164,9 +164,9 @@ nsp_parse_feed_rss(xmlNode *node, NspFeed *feed)
 					if (feed->title != NULL) {
 						free(feed->title);
 					}
-					feed->title = (char *) xmlNodeGetContent(tmp);
+					feed->title = nsp_parser_sanitize_string( (char *) xmlNodeGetContent(tmp) );
 				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "description") && feed->description == NULL ) {
-					feed->description = (char *) xmlNodeGetContent(tmp);
+					feed->description = nsp_parser_sanitize_string((char *) xmlNodeGetContent(tmp));
 				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "link") && tmp->ns == NULL && feed->site_url == NULL ) {
 					feed->site_url = (char *) xmlNodeGetContent(tmp);
 				}
@@ -209,14 +209,21 @@ nsp_feed_parse (xmlDoc *xml, NspFeed *feed)
 }
 
 static char*
-nsp_parser_clean_title(char *title) {
+nsp_parser_sanitize_string(char *title) {
 	GRegex *regex;
 	char *result;
+	char *tmp;
 	
-	regex = g_regex_new ("\\R", G_REGEX_MULTILINE, 0, NULL);
+	regex = g_regex_new ("(\\R| +)", G_REGEX_MULTILINE, 0, NULL);
 	
-	result = g_regex_replace(regex, title, -1, 0, "", 0, NULL);
+	tmp = g_regex_replace(regex, title, -1, 0, " ", 0, NULL);
 	g_regex_unref(regex);
+	
+	regex = g_regex_new ("&(?!amp;)", G_REGEX_MULTILINE, 0, NULL);
+	
+	result = g_regex_replace(regex, tmp, -1, 0, "&amp;", 0, NULL);
+	g_regex_unref(regex);
+	g_free(tmp);
 	
 	return result;
 }
