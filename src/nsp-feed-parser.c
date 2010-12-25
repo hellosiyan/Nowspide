@@ -28,7 +28,7 @@
 #define ATOM_0_3_URI	"http://purl.org/atom/ns#"
 #define ATOM_1_0_URI	"http://www.w3.org/2005/Atom"
 
-static char* nsp_parser_sanitize_string(char*);
+static char* nsp_parser_sanitize_string(char*, gboolean);
 
 static NspFeedType
 nsp_parse_feed_type(xmlNode *node)
@@ -38,21 +38,20 @@ nsp_parse_feed_type(xmlNode *node)
 			xmlChar * version = xmlGetProp(node, (const xmlChar *)"version");
 			if (!version) {
 				xmlFree(version);
-				g_warning("no RSS version");
-			}
-			if (strcmp((char*)version, "0.91")==0)
-				return NSP_FEED_RSS_0_9;
-			else if (strcmp((char*)version, "0.92")==0)
-				return NSP_FEED_RSS_0_9;
-			else if (strcmp((char*)version, "0.94")==0)
-				return NSP_FEED_RSS_0_9;
-			else if (strcmp((char*)version, "2.0")==0 || strcmp((char*)version, "2")==0)
-				return NSP_FEED_RSS_2_0;
-			else {
+				g_warning("No RSS version");
+			} else if (strcmp((char*)version, "0.91")==0 || strcmp((char*)version, "0.92")==0 || strcmp((char*)version, "0.94")==0) {
 				xmlFree(version);
-				g_warning("invalid RSS version");
+				return NSP_FEED_RSS_0_9;
+			} else if (strcmp((char*)version, "1.0")==0 || strcmp((char*)version, "1")==0) {
+				xmlFree(version);
+				return NSP_FEED_RSS_1_0;
+			} else if (strcmp((char*)version, "2.0")==0 || strcmp((char*)version, "2")==0) {
+				xmlFree(version);
+				return NSP_FEED_RSS_2_0;
+			} else {
+				xmlFree(version);
+				g_warning("Unknown RSS version");
 			}
-			xmlFree(version);
 		} else if (strcmp((const char *)node->name, "RDF")==0) {
 			return NSP_FEED_RSS_1_0;
 		} else if (strcmp((const char *)node->name, "feed")==0) {
@@ -65,22 +64,21 @@ nsp_parse_feed_type(xmlNode *node)
 					const char * version = (const char *)xmlGetProp(node, (const xmlChar *)"version");
 					if (!version) {
 						xmlFree((void *)version);
-						g_warning("invalid Atom version");
+						g_warning("Unknown Atom version");
 					} else if (strcmp(version, "0.3")==0) {
 						xmlFree((void *)version);
 						return NSP_FEED_ATOM_0_3;
 					} else {
 						xmlFree((void *)version);
-						g_warning("invalid Atom version");
-						return NSP_FEED_UNKNOWN;
+						g_warning("Unknown Atom version");
 					}
 				}
 			} else {
-				g_warning("no Atom version");
+				g_warning("No Atom version");
 			}
 		}
 	} else {
-		g_warning("invalid xml");
+		g_warning("Invalid xml");
 	}
 	
 	return NSP_FEED_UNKNOWN;
@@ -112,7 +110,7 @@ nsp_parse_items_rss (xmlNode *root, GError **error) {
 				prop = item->children;
 				while ( prop != NULL ) {
 					if ( !xmlStrcasecmp(prop->name, (xmlChar *)"title") ) {
-						feed_item->title = nsp_parser_sanitize_string((char*) xmlNodeGetContent(prop));
+						feed_item->title = nsp_parser_sanitize_string((char*) xmlNodeGetContent(prop), FALSE);
 					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"link") ) {
 						feed_item->link = (char*) xmlNodeGetContent(prop);
 					} else if( !xmlStrcasecmp(prop->name, (xmlChar *)"description") && feed_item->description == NULL ) {
@@ -164,9 +162,9 @@ nsp_parse_feed_rss(xmlNode *node, NspFeed *feed)
 					if (feed->title != NULL) {
 						free(feed->title);
 					}
-					feed->title = nsp_parser_sanitize_string( (char *) xmlNodeGetContent(tmp) );
+					feed->title = nsp_parser_sanitize_string( (char *) xmlNodeGetContent(tmp), TRUE );
 				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "description") && feed->description == NULL ) {
-					feed->description = nsp_parser_sanitize_string((char *) xmlNodeGetContent(tmp));
+					feed->description = nsp_parser_sanitize_string((char *) xmlNodeGetContent(tmp), TRUE);
 				} else if ( !xmlStrcasecmp(tmp->name, (xmlChar *) "link") && tmp->ns == NULL && feed->site_url == NULL ) {
 					feed->site_url = (char *) xmlNodeGetContent(tmp);
 				}
@@ -209,7 +207,7 @@ nsp_feed_parse (xmlDoc *xml, NspFeed *feed)
 }
 
 static char*
-nsp_parser_sanitize_string(char *title) {
+nsp_parser_sanitize_string(char *title, gboolean valid_html) {
 	GRegex *regex;
 	char *result;
 	char *tmp;
@@ -219,11 +217,15 @@ nsp_parser_sanitize_string(char *title) {
 	tmp = g_regex_replace(regex, title, -1, 0, " ", 0, NULL);
 	g_regex_unref(regex);
 	
-	regex = g_regex_new ("&(?!amp;)", G_REGEX_MULTILINE, 0, NULL);
+	if ( valid_html ) {
+		regex = g_regex_new ("&(?!amp;)", G_REGEX_MULTILINE, 0, NULL);
 	
-	result = g_regex_replace(regex, tmp, -1, 0, "&amp;", 0, NULL);
-	g_regex_unref(regex);
-	g_free(tmp);
+		result = g_regex_replace(regex, tmp, -1, 0, "&amp;", 0, NULL);
+		g_regex_unref(regex);
+		g_free(tmp);
+	} else {
+		result = tmp;
+	}
 	
 	return result;
 }
