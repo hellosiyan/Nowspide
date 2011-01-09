@@ -13,7 +13,7 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <child>
-              <object class="GtkVBox" id="vbox2">
+              <object class="GtkVBox" id="vbox_left_panel">
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
                 <child>
@@ -114,7 +114,7 @@
                 <property name="visible">True</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkHBox" id="hbox2">
+                  <object class="GtkHBox" id="hbox_right_panel_header">
                     <property name="visible">True</property>
                     <child>
                       <object class="GtkLabel" id="feed_item_list_header">
@@ -245,14 +245,14 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="feed_item_fullscreen">
+                              <object class="GtkToggleButton" id="feed_item_fullscreen">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="relief">none</property>
                                 <property name="image_position">bottom</property>
                                 <child>
-                                  <object class="GtkImage" id="image7">
+                                  <object class="GtkImage" id="feed_item_fullscreen_image">
                                     <property name="visible">True</property>
                                     <property name="stock">gtk-fullscreen</property>
                                   </object>

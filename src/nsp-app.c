@@ -31,6 +31,7 @@ nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
 	GtkTreeIter iter, child_iter;
 	GtkTreeModel *model;
 	NspFeedItem *feed_item = NULL;
+	char *markup;
 	
 	if ( gtk_tree_selection_get_selected(selection, &model, &iter) ) {
 		gtk_tree_model_get(model, &iter, ITEM_LIST_COL_ITEM_REF, &feed_item, -1);
@@ -55,7 +56,14 @@ nsp_app_feed_item_list_sel (GtkTreeSelection *selection, gpointer user_data)
 	g_mutex_unlock(app->current_feed->mutex);
 	
 	nsp_webview_load_string (app->window->webview, feed_item->description);
-	gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(app->window->builder, "feed_item_label")), feed_item->title);
+	if ( feed_item->link == NULL ) {
+		gtk_label_set_text(GTK_LABEL(gtk_builder_get_object(app->window->builder, "feed_item_label")), feed_item->title);
+	} else {
+		markup = g_markup_printf_escaped("<a href=\"%s\">%s</a>", feed_item->link, feed_item->title);
+		gtk_label_set_markup(GTK_LABEL(gtk_builder_get_object(app->window->builder, "feed_item_label")), markup);
+		g_free(markup);
+	}
+
 	
 	return;
 }

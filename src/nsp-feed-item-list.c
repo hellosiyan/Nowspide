@@ -81,7 +81,7 @@ nsp_feed_item_list_update_iter(GtkTreeIter iter, GtkTreeStore *store, NspFeedIte
 	char *col_date = NULL;
 	
 	if ( feed_item->pubdate != NULL ) {
-		col_date = g_strdup_printf("%.2i-%.2i-%.2i %.2i:%.2i", feed_item->pubdate->tm_mday, feed_item->pubdate->tm_mon, feed_item->pubdate->tm_year-100, feed_item->pubdate->tm_hour, feed_item->pubdate->tm_min);
+		col_date = g_strdup_printf("%.2i-%.2i-%.2i %.2i:%.2i", feed_item->pubdate->tm_mday, feed_item->pubdate->tm_mon + 1, feed_item->pubdate->tm_year-100, feed_item->pubdate->tm_hour, feed_item->pubdate->tm_min);
 	} else {
 		col_date = "";
 	}

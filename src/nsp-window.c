@@ -48,6 +48,7 @@ static void nsp_window_cmd_main_menu_toggle (GtkToggleButton *button, gpointer *
 static void nsp_window_cmd_main_menu_hidden (GtkWidget *widget, gpointer user_data);
 static void nsp_window_cmd_switch_view (GtkToggleButton *button, gpointer *user_data);
 static void nsp_window_cmd_feed_properties (GtkAction *action, gpointer user_data);
+static void	nsp_window_cmd_webview_expand (GtkToggleButton *button, NspWindow *win);
 
 const char *xml_main_menu = 
 "<?xml version=\"1.0\"?><interface> <requires lib=\"gtk+\" version=\"2.16\"/>"
@@ -159,6 +160,20 @@ nsp_window_destroy (GtkObject *window, NspWindow *win)
 	gtk_main_quit();
 }
 
+static void
+nsp_window_realize(GtkWidget *widget, NspWindow *win)
+{
+    GdkScreen *screen;
+    GdkRectangle monitor;
+    screen = gtk_window_get_screen (GTK_WINDOW(widget));
+    gdk_screen_get_monitor_geometry (screen,
+                                     gdk_screen_get_monitor_at_window (screen, gtk_widget_get_window(widget)),
+                                     &monitor);
+	
+	gtk_window_set_default_size(GTK_WINDOW(widget), monitor.width * 0.9 - 100, monitor.height * 0.9 - 100);
+	gtk_widget_set_size_request(GTK_WIDGET(gtk_builder_get_object(win->builder, "feed_item_list_win")), -1, (monitor.height * 0.9 - 100)/4);
+}
+
 int 
 nsp_window_init(NspWindow *win, GError **error)
 {
@@ -202,8 +217,9 @@ nsp_window_init(NspWindow *win, GError **error)
 	gtk_window_add_accel_group(GTK_WINDOW(win->window), gtk_ui_manager_get_accel_group(GTK_UI_MANAGER(gtk_builder_get_object(win->builder, "uiman"))));
 	
 	gtk_window_set_position(GTK_WINDOW(win->window), GTK_WIN_POS_CENTER);
-	gtk_window_set_default_size(GTK_WINDOW(win->window), 900, 500);
+	
 	g_signal_connect(win->window, "destroy", G_CALLBACK(nsp_window_destroy), NULL);
+	g_signal_connect(win->window, "realize", G_CALLBACK(nsp_window_realize), win);
 	
 	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "scroll_win")), win->feed_list->list_view);
 	gtk_container_add (GTK_CONTAINER (gtk_builder_get_object (win->builder, "feed_item_list_win")), win->feed_item_list);
@@ -225,6 +241,7 @@ nsp_window_init(NspWindow *win, GError **error)
 						G_CALLBACK(nsp_window_cmd_main_menu_toggle), 
 						gtk_builder_get_object(win->builder, "menubar1"));
 	g_signal_connect(gtk_builder_get_object(win->builder, "menubar1"), "hide", G_CALLBACK(nsp_window_cmd_main_menu_hidden), win);
+	g_signal_connect(gtk_builder_get_object(win->builder, "feed_item_fullscreen"), "clicked", G_CALLBACK(nsp_window_cmd_webview_expand), win);
 	g_signal_connect(win->feed_item_list, "button-release-event", G_CALLBACK(nsp_window_cmd_popup_feed_item_menu), win);
 	g_signal_connect(win->feed_list->list_view, "button-release-event", G_CALLBACK(nsp_window_cmd_popup_feed_menu), win);
 	
@@ -315,7 +332,6 @@ nsp_window_cmd_update_feed(GtkWidget *button, gpointer user_data)
 		app->window->on_feeds_update(NULL);
 	}
 }
-
 
 static void 
 nsp_window_cmd_item_toggle_status (GtkAction *action, gpointer user_data)
@@ -419,4 +435,21 @@ nsp_window_cmd_feed_properties (GtkAction *action, gpointer user_data)
 
 }
 
+static void
+nsp_window_cmd_webview_expand (GtkToggleButton *button, NspWindow *win)
+{
+	if ( gtk_toggle_button_get_active(button) ) {
+		gtk_image_set_from_stock(GTK_IMAGE(gtk_builder_get_object(win->builder, "feed_item_fullscreen_image")), 
+									GTK_STOCK_LEAVE_FULLSCREEN, GTK_ICON_SIZE_BUTTON);
+		gtk_widget_hide(GTK_WIDGET(gtk_builder_get_object(win->builder, "vbox_left_panel")));
+		gtk_widget_hide(GTK_WIDGET(gtk_builder_get_object(win->builder, "hbox_right_panel_header")));
+		gtk_widget_hide(GTK_WIDGET(gtk_builder_get_object(win->builder, "feed_item_list_win")));
+	} else {
+		gtk_image_set_from_stock(GTK_IMAGE(gtk_builder_get_object(win->builder, "feed_item_fullscreen_image")), 
+									GTK_STOCK_FULLSCREEN, GTK_ICON_SIZE_BUTTON);
+		gtk_widget_show(GTK_WIDGET(gtk_builder_get_object(win->builder, "vbox_left_panel")));
+		gtk_widget_show(GTK_WIDGET(gtk_builder_get_object(win->builder, "hbox_right_panel_header")));
+		gtk_widget_show(GTK_WIDGET(gtk_builder_get_object(win->builder, "feed_item_list_win")));
+	}
+}
 
