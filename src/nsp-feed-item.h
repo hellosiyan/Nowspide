@@ -22,6 +22,7 @@
 #define __NSP_FEED_ITEM_H_ 1
 
 #include <time.h>
+#include <gtk/gtk.h>
 
 #include "nsp-typedefs.h"
 
@@ -44,9 +45,11 @@ struct _NspFeedItem
 };
 
 NspFeedItem	* nsp_feed_item_new();
-void nsp_feed_item_free(NspFeedItem *item);
+void 	nsp_feed_item_free(NspFeedItem *item);
 
-int nsp_feed_item_save_to_db(NspFeedItem *feed_item);
-int nsp_feed_item_save_status_to_db(NspFeedItem *feed_item);
+int 	nsp_feed_item_save_to_db(NspFeedItem *feed_item);
+int 	nsp_feed_item_save_status_to_db(NspFeedItem *feed_item);
+
+GList * nsp_feed_items_search(char *exp);
 
 #endif /* __NSP_FEED_ITEM_H_ */

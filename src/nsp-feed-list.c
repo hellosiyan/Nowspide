@@ -63,6 +63,7 @@ nsp_feed_list_new()
 	
 	GtkCellRenderer *renderer = nsp_feed_list_renderer_text();
 	list->icon_load = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), "gtk-refresh", 16, 0, NULL);
+	list->icon_search = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(), "gtk-find", 16, 0, NULL);
 	
 	
 	list->list_model = (GtkTreeModel *)gtk_tree_store_new(LIST_COL_NUM, G_TYPE_STRING, G_TYPE_POINTER, GDK_TYPE_PIXBUF);
@@ -94,11 +95,15 @@ nsp_feed_list_new()
 }
 
 GtkTreeIter
-nsp_feed_list_add(NspFeedList *list, NspFeed *feed)
+nsp_feed_list_add(NspFeedList *list, NspFeed *feed, gboolean prepend)
 {
 	GtkTreeIter iter;
 	
-	gtk_tree_store_append (GTK_TREE_STORE(list->list_model), &iter, NULL);
+	if ( prepend ) {
+		gtk_tree_store_prepend (GTK_TREE_STORE(list->list_model), &iter, NULL);
+	} else {
+		gtk_tree_store_append (GTK_TREE_STORE(list->list_model), &iter, NULL);
+	}
 	
 	gtk_tree_store_set (GTK_TREE_STORE(list->list_model), &iter,
 					LIST_COL_FEED_REF, feed, LIST_COL_ICON, feed->icon,

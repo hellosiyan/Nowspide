@@ -44,6 +44,7 @@ struct _NspWindow
 	NspCallback *on_feeds_add;
 	NspCallback *on_feed_item_delete;
 	NspCallback *on_feed_item_toggle_read;
+	NspCallback *on_feeds_search;
 };
 
 NspWindow * nsp_window_new();

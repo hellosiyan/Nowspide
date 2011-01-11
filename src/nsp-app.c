@@ -110,6 +110,51 @@ nsp_app_feeds_update(void* user_data)
 }
 
 static void 
+nsp_app_feeds_search(void* user_data)
+{
+	NspApp *app = nsp_app_get();
+	NspFeed *feed = nsp_feed_new();
+	GtkTreeIter iter;
+	GRegex *regex;
+	char *new_feed_title = "Search results";
+	char *search_exp;
+	char *tmp;
+	
+	feed->title = malloc(sizeof(char)*(strlen(new_feed_title) + 1));
+	memcpy(feed->title, new_feed_title, sizeof(char)*(strlen(new_feed_title)+1));
+	
+	/* Build search term and load results */
+	regex = g_regex_new ("(%|_)", 0, 0, NULL);
+	tmp = g_regex_replace(regex, (char*)user_data, -1, 0, "\\\\\\0", 0, NULL);
+	g_regex_unref(regex);
+	
+	regex = g_regex_new ("[ \t]+", 0, 0, NULL);
+	search_exp = g_regex_replace(regex, tmp, -1, 0, "%", 0, NULL);
+	g_regex_unref(regex);
+	g_free(tmp);
+	
+	feed->items = nsp_feed_items_search(search_exp);
+	
+	/* Update front-end */
+	GDK_THREADS_ENTER();
+	nsp_feed_update_model(feed);
+	gtk_tree_view_set_model(GTK_TREE_VIEW(app->window->feed_item_list), nsp_feed_get_items_model(feed));
+	GDK_THREADS_LEAVE();
+	
+	
+	GDK_THREADS_ENTER();
+	iter = nsp_feed_list_add(app->window->feed_list, feed, true);
+	gtk_tree_store_set (GTK_TREE_STORE(app->window->feed_list->list_model), &iter,
+					LIST_COL_ICON, app->window->feed_list->icon_search,
+					-1);
+	
+	app->feeds = g_list_append(app->feeds, feed);
+	
+	gtk_tree_view_set_cursor(GTK_TREE_VIEW(app->window->feed_list->list_view), gtk_tree_model_get_path(app->window->feed_list->list_model, &iter), NULL, FALSE);
+	GDK_THREADS_LEAVE();
+}
+
+static void 
 nsp_app_feed_item_delete(void* user_data)
 {
 	NspApp *app = nsp_app_get();
@@ -154,7 +199,7 @@ nsp_app_load_feeds(NspApp *app)
 	while ( feeds != NULL ) {
 		nsp_feed_load_items_from_db((NspFeed*) feeds->data);
 		nsp_feed_update_model((NspFeed*) feeds->data);
-		nsp_feed_list_add(app->window->feed_list, (NspFeed*) feeds->data);
+		nsp_feed_list_add(app->window->feed_list, (NspFeed*) feeds->data, false);
 		
 		feeds = feeds->next;
 	}
@@ -198,7 +243,7 @@ nsp_app_feed_add (void* user_data)
 	memcpy(feed->title, new_feed_title, sizeof(char)*(strlen(new_feed_title)+1));
 	
 	GDK_THREADS_ENTER();
-	iter = nsp_feed_list_add(app->window->feed_list, feed);
+	iter = nsp_feed_list_add(app->window->feed_list, feed, false);
 	gtk_tree_store_set (GTK_TREE_STORE(app->window->feed_list->list_model), &iter,
 					LIST_COL_ICON, app->window->feed_list->icon_load,
 					-1);
@@ -257,6 +302,7 @@ nsp_app_new ()
 	
 	app->window->on_feeds_add = nsp_app_feed_add;
 	app->window->on_feeds_update = nsp_app_feeds_update;
+	app->window->on_feeds_search = nsp_app_feeds_search;
 	app->window->on_feed_item_delete = nsp_app_feed_item_delete;
 	app->window->on_feed_item_toggle_read = nsp_app_feed_item_toggle_read;
 	app->window->feed_list->on_select = nsp_app_feed_list_select;

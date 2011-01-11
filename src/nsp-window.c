@@ -44,6 +44,7 @@ static void nsp_window_cmd_item_toggle_status (GtkAction *action, gpointer user_
 static void nsp_window_cmd_item_delete (GtkAction *action, gpointer user_data);
 static gboolean nsp_window_cmd_popup_feed_item_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data);
 static gboolean nsp_window_cmd_popup_feed_menu (GtkWidget *widget, GdkEventButton *event, gpointer user_data);
+static void	nsp_window_cmd_search (GtkEntry *entry, NspWindow *win);
 static void nsp_window_cmd_main_menu_toggle (GtkToggleButton *button, gpointer *user_data);
 static void nsp_window_cmd_main_menu_hidden (GtkWidget *widget, gpointer user_data);
 static void nsp_window_cmd_switch_view (GtkToggleButton *button, gpointer *user_data);
@@ -136,7 +137,7 @@ nsp_window_new()
 	win->builder = gtk_builder_new();
 	win->feed_list = nsp_feed_list_new();
 	win->feed_item_list = nsp_feed_item_list_get_view();
-	win->on_feeds_add = win->on_feeds_update = win->on_feed_item_delete = win->on_feed_item_toggle_read = NULL;
+	win->on_feeds_add = win->on_feeds_update = win->on_feed_item_delete = win->on_feed_item_toggle_read = win->on_feeds_search = NULL;
 	win->feed_item_menu = win->feed_menu = NULL;
 	
 	
@@ -244,6 +245,7 @@ nsp_window_init(NspWindow *win, GError **error)
 	g_signal_connect(gtk_builder_get_object(win->builder, "feed_item_fullscreen"), "clicked", G_CALLBACK(nsp_window_cmd_webview_expand), win);
 	g_signal_connect(win->feed_item_list, "button-release-event", G_CALLBACK(nsp_window_cmd_popup_feed_item_menu), win);
 	g_signal_connect(win->feed_list->list_view, "button-release-event", G_CALLBACK(nsp_window_cmd_popup_feed_menu), win);
+	g_signal_connect(gtk_builder_get_object(win->builder, "search_bar"), "activate", G_CALLBACK(nsp_window_cmd_search), win);
 	
 	g_signal_connect(win->webview->btn_view_switch, "toggled", G_CALLBACK(nsp_window_cmd_switch_view), win);
 	
@@ -379,6 +381,15 @@ nsp_window_cmd_popup_feed_menu (GtkWidget *widget, GdkEventButton *event, gpoint
             gtk_get_current_event_time());
 	
 	return FALSE;
+}
+
+static void	
+nsp_window_cmd_search (GtkEntry *entry, NspWindow *win)
+{
+	NspApp *app = nsp_app_get();
+	if ( gtk_entry_get_text_length(entry) > 0 && app->window->on_feeds_search != NULL) {
+		nsp_jobs_queue(app->jobs, nsp_job_new(app->window->on_feeds_search, (void*)gtk_entry_get_text(entry)));
+	}
 }
 
 

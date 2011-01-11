@@ -40,11 +40,12 @@ struct _NspFeedList {
 	
 	NspCallback *on_select;
 	GdkPixbuf *icon_load;
+	GdkPixbuf *icon_search;
 };
 
 NspFeedList * nsp_feed_list_new();
 
-GtkTreeIter nsp_feed_list_add(NspFeedList *list, NspFeed *feed);
+GtkTreeIter nsp_feed_list_add(NspFeedList *list, NspFeed *feed, gboolean prepend);
 void nsp_feed_list_remove(NspFeedList *list, NspFeed *feed);
 void nsp_feed_list_update_entry(NspFeedList *list, NspFeed *feed);
 gboolean nsp_feed_list_search(NspFeedList *list, NspFeed *feed, GtkTreeIter *it);

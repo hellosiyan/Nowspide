@@ -22,6 +22,28 @@
 
 #include <assert.h>
 
+static int 
+nsp_feed_items_load_callback(void *user_data, int argc, char **argv, char ** azColName)
+{
+	GList **feed_items = (GList**) user_data;
+	NspFeedItem *feed_item = nsp_feed_item_new();
+	
+	feed_item->id = atoi(argv[0]);
+	feed_item->feed_id = atoi(argv[1]);
+	feed_item->status = atoi(argv[6]);
+	feed_item->title = g_strdup(argv[2]);
+	feed_item->link = g_strdup(argv[3]);
+	feed_item->description = g_strdup(argv[4]);
+	time_t time = (time_t)atol(argv[5]);
+	
+	feed_item->pubdate = malloc(sizeof(struct tm));
+	memcpy( feed_item->pubdate, localtime(&time), sizeof(struct tm));
+	
+	*feed_items = g_list_prepend(*feed_items, (gpointer) feed_item);
+	
+	return 0;
+}
+
 NspFeedItem *
 nsp_feed_item_new()
 {
@@ -152,4 +174,30 @@ nsp_feed_item_save_status_to_db(NspFeedItem *feed_item)
 	}
 	
 	return 0;
+}
+
+GList*
+nsp_feed_items_search(char *exp)
+{
+	NspDb *db = nsp_db_get();
+	GList *items = NULL;
+	char *error = NULL;
+	int stat;
+	
+	char *query = sqlite3_mprintf("SELECT id, feed_id, title, url, description, date, status FROM nsp_feed_item WHERE description LIKE \"%%%s%%\"", exp);
+	stat = sqlite3_exec(db->db, query, nsp_feed_items_load_callback, &items, &error);
+	sqlite3_free(query);
+	
+	if ( stat != SQLITE_OK ) {
+		if ( error == NULL) {
+			g_warning("Error: %s\n", sqlite3_errmsg(db->db));
+		} else {
+			g_warning("Error: %s\n", error);
+			sqlite3_free(error);
+		}
+		
+		return NULL;
+	}
+	
+	return items;
 }
